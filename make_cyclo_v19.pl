@@ -54,7 +54,7 @@ use Getopt::Long;
 use List::Util qw(max min);   
 use List::MoreUtils qw{ minmax any};
 
-require "/home/lisakov/perl_modules/ra_schedule_read.pl";
+require "ra_schedule_read.pl";
 use strict;
 
 
