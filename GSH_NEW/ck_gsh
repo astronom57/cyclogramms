@@ -1,0 +1,12 @@
+1	5	3240,0000004D	// vybor GSh visokiy 6-1
+1   5       3230,2443A000   // 2F0 7/8dB GSH-otkl U 7.5mA
+1	5	3240,0000004B	// vkl GSh 6-1
+1   35      3230,2443A060   // 2F0 7/8dB GSH-1 visokiy U 7.5mA
+1	5	3240,0000004C	// otkl GSh 6-1
+1   35      3230,2443A000   // 2F0 7/8dB GSH-otkl U 7.5mA
+#
+1	5	3240,0000004E	// vybor GSh nizk 6-1
+1	5	3240,0000004B	// vkl GSh 6-1
+1       35      3230,2443A020   // 2F0 7/8dB GSH-1 nizkiy U 7.5mA
+1	5	3240,0000004C	// otkl GSh 6-1
+1       35      3230,2443A000   // 2F0 7/8dB GSH-otkl U 7.5mA

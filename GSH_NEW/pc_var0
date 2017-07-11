@@ -1,0 +1,30 @@
+* visokij 1
+1	5	3240,0000007D	// vybor GSh visokiy 92-1
+1	5	3240,0000004D	// vybor GSh visokiy 6-1
+1	5	3240,0000007B	// vkl. GSh 92-1
+1	35	3240,0000004B	// vkl GSh 6-1
+1	5	3240,0000007C	// otkl. GSh 92-1
+1	35	3240,0000004C	// otkl GSh 6-1
+#
+* nizkij 1
+1	5	3240,0000007E	// vybor GSh nizk. 92-1
+1	5	3240,0000004E	// vybor GSh nizk 6-1
+1	5	3240,0000007B	// vkl. GSh 92-1
+1	35	3240,0000004B	// vkl GSh 6-1
+1	5	3240,0000007C	// otkl. GSh 92-1
+1	35	3240,0000004C	// otkl GSh 6-1
+
+*visokij 2
+1	5	3240,00000081	// vybor GSh visokiy 92-2
+1	5	3240,00000051	// vybor GSh visokiy 6-2
+1	5	3240,0000007F	// vkl. GSh 92-2
+1	35	3240,0000004F	// vkl GSh 6-2
+1	5	3240,00000080	// otkl. GSh 92-2
+1	35	3240,00000050	// otkl GSh 6-2
+* nizkij 2
+1	5	3240,00000082	// vybor GSh nizk. 92-2
+1	5	3240,00000052	// vybor GSh nizk 6-2
+1	5	3240,0000007F	// vkl. GSh 92-2
+1	35	3240,0000004F	// vkl GSh 6-2
+1	5	3240,00000080	// otkl. GSh 92-2
+1	35	3240,00000050	// otkl GSh 6-2

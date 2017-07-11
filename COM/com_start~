@@ -1,0 +1,10 @@
+1	10	3153		// otkl pitanie BIK
+1	10	3240,00000021	// otkl kanalov FGTCh
+1	10	3240,00000021	// 
+1	10	3240,0000001F	// vkl geterodina 258 MHz
+1	10	3240,0000001F	//
+1	10	3240,0000009E	// otkl kanalov FGSVCh
+1	10	3240,0000009E	//
+1	10	3220,000020B5	// Work, 72 Mbod, F3/F3 USTM ON
+1	10	3220,000020B5	//
+1	30	866-130		// PFK-5, 32kbod

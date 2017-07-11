@@ -1,0 +1,27 @@
+* visokij 1
+1	5	3240,0000004D	// vybor GSh visokiy 6-1
+1	5	3240,0000004B	// vkl GSh 6-1
+1       35       3230,2443A060   // 2F0 7/8dB GSH-1 visokiy GSH-2 otkl U 7.5mA
+1	5	3240,0000004C	// otkl GSh 6-1
+1       35      3230,2443A000   // 2F0 7/8dB GSH-1 otkl  GSH-2 otkl U 7.5mA
+
+* nizkij 1
+1	5	3240,0000004E	// vybor GSh nizk 6-1
+1	5	3240,0000004B	// vkl GSh 6-1
+1       35       3230,2443A020   // 2F0 7/8dB GSH-1 nizkiy GSH-2 otkl U 7.5mA
+1	5	3240,0000004C	// otkl GSh 6-1
+1       35      3230,2443A000   // 2F0 7/8dB GSH-1 otkl  GSH-2 otkl U 7.5mA
+
+* visokij 2
+1	5	3240,00000051	// vybor GSh visokiy 6-2
+1	5	3240,0000004F	// vkl GSh 6-2
+1       35      3230,2443A180   // 2F0 7/8dB GSH-1 otkl  GSH-2 visokiy U 7.5mA
+1	5	3240,00000050	// otkl GSh 6-2
+1       35      3230,2443A000   // 2F0 7/8dB GSH-1 otkl  GSH-2 otkl U 7.5mA
+
+* nizkij 2
+1	5	3240,00000052	// vybor GSh nizk 6-2
+1	5	3240,0000004F	// vkl GSh 6-2
+1       35      3230,2443A080   // 2F0 7/8dB GSH-1 otkl  GSH-2 nizkiy U 7.5mA
+1	5	3240,00000050	// otkl GSh 6-2
+1       35      3230,2443A000   // 2F0 7/8dB GSH-1 otkl  GSH-2 otkl U 7.5mA
