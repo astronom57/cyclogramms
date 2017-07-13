@@ -2338,6 +2338,9 @@ else {
 }
 
 
+END{unless($debug){`python2 cyclogram.py ra$nachalo-$konec.01.035`}}
+
+
 
 # HEADER
 my @today=Today();
