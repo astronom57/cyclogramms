@@ -149,6 +149,17 @@ foreach ( sort keys %S ) {
     }
 }
 
+my @keys = sort keys %S;
+for my $i (0..scalar @keys) {
+    my $key = $keys[$i];
+    if ($i > 0) {
+        $S{$key}{'prev'} = $S{$keys[$i - 1]};
+    }
+    if ($i < scalar @keys - 1) {
+        $S{$key}{'next'} = $S{$keys[$i + 1]};
+    }
+}
+
 print "Global start = ", print_time($global_start_sec), "\n";
 print "Global stop  = ", print_time($global_stop_sec),  "\n";
 
@@ -746,6 +757,10 @@ foreach ( sort keys %S ) {
 
 # 		unless($S{$_}{'obscode'} =~ m/(?:puts|gbts)/i   and  $S{$_}{'ts_mode'} !~ m/ch/i){
         else {
+            if ( $S{$_}{'ts_mode'} =~ m/rb/i && $S{$_}{'prev'}{'ts_mode'} !~ m/rb/i) {
+                push @cmd, "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
+                push @cmd, "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
+            }
 
             unless ($doshort_bef) {
 
@@ -1159,6 +1174,12 @@ foreach ( sort keys %S ) {
                 $GSHA{ $S{$_}{'stop'} } = $t;
             }
 
+        }
+        if ( $S{$_}{'ts_mode'} =~ m/rb/i && $S{$_}{'next'}{'ts_mode'} !~ m/rb/i) {
+            my @cmd;
+            push @cmd, "1\t" . $dt . "\t3240,00000013\t// Otkl 5MHz na BRSCh-2";
+            push @cmd, "1\t" . $dt . "\t3240,0000001B\t// Work FGTCh s  \"VIRK-1\" (BVSCH-1,2)";
+            push @rep_cmd, repeat_block( \@cmd, 2 );
         }
 
         $GSHA{ $S{$_}{'stop'} } = $t + &block_duration( \@rep_cmd )
