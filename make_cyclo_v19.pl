@@ -150,13 +150,13 @@ foreach ( sort keys %S ) {
 }
 
 my @keys = sort keys %S;
-for my $i (0..scalar @keys) {
+for my $i ( 0 .. scalar @keys ) {
     my $key = $keys[$i];
-    if ($i > 0) {
-        $S{$key}{'prev'} = $S{$keys[$i - 1]};
+    if ( $i > 0 ) {
+        $S{$key}{'prev'} = $S{ $keys[ $i - 1 ] };
     }
-    if ($i < scalar @keys - 1) {
-        $S{$key}{'next'} = $S{$keys[$i + 1]};
+    if ( $i < scalar @keys - 1 ) {
+        $S{$key}{'next'} = $S{ $keys[ $i + 1 ] };
     }
 }
 
@@ -466,6 +466,7 @@ my %all_rec_poweroff
   ; # keys of observation AFTER which rec should be powered off. Primary key - rec. Value - array of %S keys( == start times)
 
 # find gaps longer than 5 hours for each rec used
+# loop over receivers
 foreach ( keys %all_rec_periods ) {
 
     my @array_on;     # array of power on keys
@@ -480,7 +481,7 @@ foreach ( keys %all_rec_periods ) {
         push @array_off, ${ $all_rec_periods{$_} }[0];
     }
     else {
-        # 	print $_,"\t";
+        #     print $_,"\t";
         for ( my $i = 1 ; $i < scalar @{ $all_rec_periods{$_} } ; $i++ ) {
 
             if (
@@ -505,7 +506,7 @@ foreach ( keys %all_rec_periods ) {
 
             }
 
-            # 	print ${$all_rec_periods{$_}}[$i],"\t";
+            #     print ${$all_rec_periods{$_}}[$i],"\t";
         }
 
         # 	print "\n";
@@ -515,8 +516,8 @@ foreach ( keys %all_rec_periods ) {
         push @array_off, $S{ ${ $all_rec_periods{$_} }[-1] }{'start'};
     }
 
-    @array_on  = sort sort { $a <=> $b } @array_on;
-    @array_off = sort sort { $a <=> $b } @array_off;
+    @array_on  = sort { $a <=> $b } @array_on;
+    @array_off = sort { $a <=> $b } @array_off;
 
     $all_rec_poweron{$_}  = \@array_on;
     $all_rec_poweroff{$_} = \@array_off;
@@ -757,9 +758,13 @@ foreach ( sort keys %S ) {
 
 # 		unless($S{$_}{'obscode'} =~ m/(?:puts|gbts)/i   and  $S{$_}{'ts_mode'} !~ m/ch/i){
         else {
-            if ( $S{$_}{'ts_mode'} =~ m/rb/i && $S{$_}{'prev'}{'ts_mode'} !~ m/rb/i) {
-                push @cmd, "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
-                push @cmd, "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
+            if (   $S{$_}{'ts_mode'} =~ m/rb/i
+                && $S{$_}{'prev'}{'ts_mode'} !~ m/rb/i )
+            {
+                push @cmd,
+                  "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
+                push @cmd,
+                  "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
             }
 
             unless ($doshort_bef) {
@@ -1175,10 +1180,15 @@ foreach ( sort keys %S ) {
             }
 
         }
-        if ( $S{$_}{'ts_mode'} =~ m/rb/i && $S{$_}{'next'}{'ts_mode'} !~ m/rb/i) {
+        if (   $S{$_}{'ts_mode'} =~ m/rb/i
+            && $S{$_}{'next'}{'ts_mode'} !~ m/rb/i )
+        {
             my @cmd;
             push @cmd, "1\t" . $dt . "\t3240,00000013\t// Otkl 5MHz na BRSCh-2";
-            push @cmd, "1\t" . $dt . "\t3240,0000001B\t// Work FGTCh s  \"VIRK-1\" (BVSCH-1,2)";
+            push @cmd,
+                "1\t"
+              . $dt
+              . "\t3240,0000001B\t// Work FGTCh s  \"VIRK-1\" (BVSCH-1,2)";
             push @rep_cmd, repeat_block( \@cmd, 2 );
         }
 
@@ -2093,7 +2103,8 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
             $prev_time = (
                 defined $GSHA{ $S{ $keys[ $i - 1 ] }{'stop'} }
                 ? $GSHA{ $S{ $keys[ $i - 1 ] }{'stop'} }
-                : $S{ $keys[ $i - 1 ] }{'stop'} + 5 * 60 );
+                : $S{ $keys[ $i - 1 ] }{'stop'} + 5 * 60
+            );
         }
 
         # define warm up time
@@ -2220,7 +2231,8 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
         $t = (
             defined $GSHA{ $S{ $keys[$i] }{'stop'} }
             ? $GSHA{ $S{ $keys[$i] }{'stop'} }
-            : $S{ $keys[$i] }{'stop'} + 5 * 60 );
+            : $S{ $keys[$i] }{'stop'} + 5 * 60
+        );
 
 # v19 . for yust poweroff should be done right after $S{$keys[$i]}{'stop'}, since it already accounts for GSH time
         if ( $S{ $keys[$i] }{'type'} eq 'just' ) {
@@ -2961,7 +2973,8 @@ sub block_duration() {
 sub uniq {
     my %seen = ();
     my @r    = ();
-    foreach my $val (@_) {
+    my @ar   = @_;
+    foreach my $val (@ar) {
         $val =~ s/\s+//g;
         if ( !$val ) { next; }
         unless ( $seen{$val} ) {
@@ -2979,7 +2992,8 @@ sub uniq {
 sub super_uniq {
     my %seen = ();
     my @r    = ();
-    foreach my $val (@_) {
+    my @ar   = @_;
+    foreach my $val (@ar) {
         $val =~ s/\s+//g;
         $val =~ s/[12]//g;
         if ( !$val ) { next; }
@@ -3045,9 +3059,11 @@ sub repeat_block() {
             }
             my $new =
               $n . "\t"
-              . ( ( $delay - $dt * ( $repeat - 1 ) ) >= $dt
+              . (
+                  ( $delay - $dt * ( $repeat - 1 ) ) >= $dt
                 ? ( $delay - $dt * ( $repeat - 1 ) )
-                : $dt )
+                : $dt
+              )
               . "\t"
               . $cmd . "\t" . " //";
             push @rep_array, $new;
