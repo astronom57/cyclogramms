@@ -430,7 +430,11 @@ my %all_rec_poweron;	# keys of observation BEFORE which rec should be powered on
 my %all_rec_poweroff;	# keys of observation AFTER which rec should be powered off. Primary key - rec. Value - array of %S keys( == start times)
 
 
+
+
+
 # find gaps longer than 5 hours for each rec used
+# loop over receivers
 foreach(keys %all_rec_periods){    
     
     my @array_on; 	# array of power on keys
@@ -464,8 +468,8 @@ foreach(keys %all_rec_periods){
     push @array_off, $S{${$all_rec_periods{$_}}[-1]}{'start'};
     }
 
-    @array_on = sort sort {$a <=> $b} @array_on;
-    @array_off = sort sort {$a <=> $b} @array_off;
+    @array_on =  sort {$a <=> $b} @array_on;
+    @array_off =  sort {$a <=> $b} @array_off;
     
     
     $all_rec_poweron{$_} = \@array_on;
