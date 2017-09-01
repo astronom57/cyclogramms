@@ -2690,7 +2690,8 @@ sub block_duration(){
 sub uniq {
     my %seen = ();
     my @r = ();
-    foreach my $val (@_) {
+    my @ar = @_;
+    foreach my $val (@ar) {
 	$val=~s/\s+//g;
 	if(!$val){next;}
         unless ($seen{$val}) {
@@ -2709,7 +2710,8 @@ sub uniq {
 sub super_uniq {
     my %seen = ();
     my @r = ();
-    foreach my $val (@_) {
+    my @ar = @_;
+    foreach my $val (@ar) {
 	$val=~s/\s+//g;
 	$val=~s/[12]//g;
 	if(!$val){next;}
