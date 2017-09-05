@@ -149,16 +149,78 @@ foreach ( sort keys %S ) {
     }
 }
 
+
+
+
+# explicitly delete LASER RANGING sessions from the schedule
+foreach ( sort keys %S ) {
+	if ( $S{$_}{'type'} eq "sns_ll" ) {
+		delete $S{$_};}
+}
+
+
+
+
 my @keys = sort keys %S;
 for my $i ( 0 .. scalar @keys ) {
-    my $key = $keys[$i];
-    if ( $i > 0 ) {
-        $S{$key}{'prev'} = $S{ $keys[ $i - 1 ] };
+
+    
+
+		print "Going to insert keys\n";
+
+		my $key = $keys[$i];
+		
+		if (   $S{$key}{'type'} eq "obs"
+        || $S{$key}{'type'} eq "just"
+        || $S{$key}{'type'} eq "just_virk" )
+    {
+		
+		
+		
+		if ( $i > 0 ) {
+# 			$S{$key}{'prev'} = $S{ $keys[ $i - 1 ] };
+			$S{$key}{'prev'} = $keys[ $i - 1 ];
+			
+		}
+		if ( $i < scalar @keys - 1 ) {
+# 			$S{$key}{'next'} = $S{ $keys[ $i + 1 ] };
+			$S{$key}{'next'} = $keys[ $i + 1 ];
+		}
+    
+    
     }
-    if ( $i < scalar @keys - 1 ) {
-        $S{$key}{'next'} = $S{ $keys[ $i + 1 ] };
-    }
+    
 }
+
+
+# test 
+foreach (sort {$a <=> $b} keys %S){
+
+ if (   $S{$_}{'type'} eq "obs"
+        || $S{$_}{'type'} eq "just"
+        || $S{$_}{'type'} eq "just_virk" )
+    {
+	print "*"x50,"\n";
+	print "THIS OBSERVATION: ",$S{$_}{'osbcode'},"\n";
+	print Dumper($S{$_}),"\n";
+	print "next observation obscode:\n";
+	print Dumper($S{$S{$_}{'next'}}{'obscode'});
+	print "\n"x3;
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 print "Global start = ", print_time($global_start_sec), "\n";
 print "Global stop  = ", print_time($global_stop_sec),  "\n";
@@ -710,6 +772,7 @@ foreach ( sort keys %S ) {
             next;
         }
 
+        
         ##############################################################
         # GSH
         print "Calibration before ", $S{$_}{'obscode'}, " start time ",
@@ -739,8 +802,8 @@ foreach ( sort keys %S ) {
 
         print "DOSHORT = ($doshort_bef, $doshort_aft)\n";
 
-        # if coherent mode
-        if ( $S{$_}{'ts_mode'} =~ m/ch/i ) {
+        # if coherent mode for GRAVITATIONAL sessions only
+        if ( $S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} =~ m/(?:puts|gbts|grts|raks19)/i) {
 
             # Added on 13-04-2015
 
@@ -749,17 +812,28 @@ foreach ( sort keys %S ) {
             push @cmd, "1\t" . $dt . "\t3212,050466A1\t// otkl. 15MHz";
             push @cmd, "1\t" . $dt . "\t3212,050324DB\t// vkl. 5MHz na BVSCh-2";
             push @cmd, "1\t" . $dt . "\t3240,0000001A\t// Rabota ot BVSCh-2.";
-            push @cmd,
-              "1\t" . $dt . "\t3220,00002065\t// \"Test-2\",  72 Mbod, USTM-ON";
+            push @cmd, "1\t" . $dt . "\t3220,00002065\t// \"Test-2\",  72 Mbod, USTM-ON";
             @rep_cmd = repeat_block( \@cmd, 2 );
 
             $t = $S{$_}{'start'} - 600;
+        }
+        # for VLBI sessions
+        elsif ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i){
+        	push @cmd, "1\t" . $dt . "\t3115\t// vkl Cogerent";
+			push @cmd, "1\t" . $dt . "\t3211,01010814\t// Razreshenie otkl.";
+			push @cmd, "1\t" . $dt . "\t3211,050466A1\t// otkl. 15MHz";
+			@rep_cmd = repeat_block( \@cmd, 2 );
+			
+			print "COHERENT. BLOCK DUR = ",&block_duration( \@rep_cmd )," sec\n";
+			
+			
+			$t = $S{$_}{'start'} - &block_duration( \@rep_cmd );
         }
 
 # 		unless($S{$_}{'obscode'} =~ m/(?:puts|gbts)/i   and  $S{$_}{'ts_mode'} !~ m/ch/i){
         else {
             if (   $S{$_}{'ts_mode'} =~ m/rb/i
-                && $S{$_}{'prev'}{'ts_mode'} !~ m/rb/i )
+                && $S{$S{$_}{'next'}}{'ts_mode'} !~ m/rb/i )
             {
                 push @cmd,
                   "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
@@ -1035,20 +1109,17 @@ foreach ( sort keys %S ) {
         print "\n++++++++++++++++\n", $this - $prevstop,
           " seconds between observations\n";
 
-        # if coherent mode
-        if ( $S{$_}{'ts_mode'} =~ m/ch/i ) {
+        # if coherent mode for GRAVITATIONAL sessions
+        if ( $S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} =~ m/(?:puts|gbts|raks19)/i) {
             push @cmd, "1\t" . $dt . "\t3116\t// vkl. HM";
             push @cmd, "1\t" . $dt . "\t3115\t// vkl Cogerent";
             push @cmd, "1\t" . $dt . "\t3116\t// vkl. HM";
 
             # ADDDED 13-04-2015
-            push @cmd, "1\t" . $dt . "3240,0000001B\t// Rabota ot VIRK-1";
-            push @cmd, "1\t" . $dt . "3212,01010814\t// Razreshenie otkl.";
-            push @cmd, "1\t" . $dt . "3212,05026314\t// otkl. 5MHz";
-            push @cmd,
-                "1\t"
-              . $dt
-              . "3220,000020B5\t//  \"Rabota\", 72 Mbod, USTM-ON, F3/F3";
+            push @cmd, "1\t" . $dt . "\t3240,0000001B\t// Rabota ot VIRK-1";
+            push @cmd, "1\t" . $dt . "\t3212,01010814\t// Razreshenie otkl.";
+            push @cmd, "1\t" . $dt . "\t3212,05026314\t// otkl. 5MHz";
+            push @cmd, "1\t" . $dt . "\t3220,000020B5\t//  \"Rabota\", 72 Mbod, USTM-ON, F3/F3";
 
             my @cmd1;
             push @cmd1, "1\t" . $dt . "\t3116\t// vkl. HM";
@@ -1057,16 +1128,21 @@ foreach ( sort keys %S ) {
             push @cmd1, "1\t" . $dt . "\t3240,0000001B\t// Rabota ot VIRK-1";
             push @cmd1, "1\t" . $dt . "\t3212,01010814\t// Razreshenie otkl.";
             push @cmd1, "1\t" . $dt . "\t3212,05026314\t// otkl. 5MHz";
-            push @cmd1,
-                "1\t"
-              . $dt
-              . "\t3220,000020B5\t//  \"Rabota\", 72 Mbod, USTM-ON, F3/F3";
+            push @cmd1, "1\t" . $dt . "\t3220,000020B5\t//  \"Rabota\", 72 Mbod, USTM-ON, F3/F3";
 
             @rep_cmd = repeat_block( \@cmd1, 2 );
 
             $t = $S{$_}{'stop'} + &block_duration( \@rep_cmd );
         }
-
+		# coherent mode for VLBI observations
+		elsif( $S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|gbts|grts|raks19)/i){
+			push @cmd, "1\t" . $dt . "\t3211,05052867		// vkl.15MHz na BVSCh-1";
+			push @cmd, "1\t" . $dt . "\t3116\t// vkl. HM";
+            push @cmd, "1\t" . $dt . "\t3115\t// vkl Cogerent";
+            push @cmd, "1\t" . $dt . "\t3116\t// vkl. HM";
+			@rep_cmd = repeat_block( \@cmd, 2 );
+			$t = $S{$_}{'stop'} + &block_duration( \@rep_cmd );
+		}
         else {
             ######################################
             # GSH AFTER
@@ -1181,7 +1257,7 @@ foreach ( sort keys %S ) {
 
         }
         if (   $S{$_}{'ts_mode'} =~ m/rb/i
-            && $S{$_}{'next'}{'ts_mode'} !~ m/rb/i )
+            && $S{$S{$_}{'next'}}{'ts_mode'} !~ m/rb/i )
         {
             my @cmd;
             push @cmd, "1\t" . $dt . "\t3240,00000013\t// Otkl 5MHz na BRSCh-2";
@@ -1542,6 +1618,20 @@ foreach ( sort keys %S ) {
     }    # justirovka
 }
 
+
+# my @mm = minmax( sort { $a <=> $b } keys %times );
+# print "after GSH, before setting kluchi \n";
+# print "to this moment min time is $mm[0] =  ", &print_time( $mm[0] ), "\n";
+# die 57;
+
+
+
+
+
+
+
+
+
 ###############################################################
 # 6. put kluchi on before, put kluchi off after
 
@@ -1750,6 +1840,11 @@ for my $i ( 0 .. $#keys ) {
 
     }
 }
+
+
+
+
+
 
 # 6.5  Regim
 
