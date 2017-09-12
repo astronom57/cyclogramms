@@ -817,23 +817,31 @@ foreach ( sort keys %S ) {
 
             $t = $S{$_}{'start'} - 600;
         }
-        # for VLBI sessions
-        elsif ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i){
-        	push @cmd, "1\t" . $dt . "\t3115\t// vkl Cogerent";
-			push @cmd, "1\t" . $dt . "\t3211,01010814\t// Razreshenie otkl.";
-			push @cmd, "1\t" . $dt . "\t3211,050466A1\t// otkl. 15MHz";
-			@rep_cmd = repeat_block( \@cmd, 2 );
-			
-			print "COHERENT. BLOCK DUR = ",&block_duration( \@rep_cmd )," sec\n";
-			
-			
-			$t = $S{$_}{'start'} - &block_duration( \@rep_cmd );
-        }
+#         # for VLBI sessions
+#         elsif ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i){
+#         	push @cmd, "1\t" . $dt . "\t3115\t// vkl Cogerent";
+# 			push @cmd, "1\t" . $dt . "\t3211,01010814\t// Razreshenie otkl.";
+# 			push @cmd, "1\t" . $dt . "\t3211,050466A1\t// otkl. 15MHz";
+# 			@rep_cmd = repeat_block( \@cmd, 2 );
+# 			
+# 			print "COHERENT. BLOCK DUR = ",&block_duration( \@rep_cmd )," sec\n";
+# 			
+# 			
+# 			$t = $S{$_}{'start'} - &block_duration( \@rep_cmd );
+#         }
 
 # 		unless($S{$_}{'obscode'} =~ m/(?:puts|gbts)/i   and  $S{$_}{'ts_mode'} !~ m/ch/i){
         else {
+        
+			if ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i){
+				push @cmd, "1\t" . $dt . "\t3115\t// vkl Cogerent";
+				push @cmd, "1\t" . $dt . "\t3211,01010814\t// Razreshenie otkl.";
+				push @cmd, "1\t" . $dt . "\t3211,050466A1\t// otkl. 15MHz";
+			}
+        
+        
             if (   $S{$_}{'ts_mode'} =~ m/rb/i
-                && $S{$S{$_}{'next'}}{'ts_mode'} !~ m/rb/i )
+                && $S{$S{$_}{'prev'}}{'ts_mode'} !~ m/rb/i )
             {
                 push @cmd,
                   "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
