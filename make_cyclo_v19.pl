@@ -800,7 +800,7 @@ foreach ( sort keys %S ) {
             $doshort_aft = 1;
         }
 
-        print "DOSHORT = ($doshort_bef, $doshort_aft)\n";
+        print "DOSHORT = ($doshort_bef, $doshort_aft)   ts_mode = ",$S{$this}{'ts_mode'}," \n";
 
         # if coherent mode for GRAVITATIONAL sessions only
         if ( $S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} =~ m/(?:puts|gbts|grts|raks19)/i) {
@@ -831,23 +831,12 @@ foreach ( sort keys %S ) {
 #         }
 
 # 		unless($S{$_}{'obscode'} =~ m/(?:puts|gbts)/i   and  $S{$_}{'ts_mode'} !~ m/ch/i){
+
+
+		# here should go all VLBI sessions incl. HM, RB, CH modes
         else {
         
-			if ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i){
-				push @cmd, "1\t" . $dt . "\t3115\t// vkl Cogerent";
-				push @cmd, "1\t" . $dt . "\t3211,01010814\t// Razreshenie otkl.";
-				push @cmd, "1\t" . $dt . "\t3211,050466A1\t// otkl. 15MHz";
-			}
-        
-        
-            if (   $S{$_}{'ts_mode'} =~ m/rb/i
-                && $S{$S{$_}{'prev'}}{'ts_mode'} !~ m/rb/i )
-            {
-                push @cmd,
-                  "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
-                push @cmd,
-                  "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
-            }
+			
 
             unless ($doshort_bef) {
 
@@ -1102,6 +1091,38 @@ foreach ( sort keys %S ) {
 
         $GSHB{ $S{$_}{'start'} } = $t;    # GHS before start time
 
+        
+        
+        
+        # CH and RB switch ON before calibration start time. Should work even in case of no GSH_BEF inserted (MML)
+                
+        if ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i){
+				my @cmd1=();
+				push @cmd1, "1\t" . $dt . "\t3115\t// vkl Cogerent";
+				push @cmd1, "1\t" . $dt . "\t3211,01010814\t// Razreshenie otkl.";
+				push @cmd1, "1\t" . $dt . "\t3211,050466A1\t// otkl. 15MHz";
+				my @rep_cmd1 = repeat_block( \@cmd1, 2 );
+				$t =   $GSHB{ $S{$_}{'start'} };
+				insert_block( \$t, \@rep_cmd1, "+", 1 );
+
+				
+			}
+        
+        
+            if (   $S{$_}{'ts_mode'} =~ m/rb/i
+                && $S{$S{$_}{'prev'}}{'ts_mode'} !~ m/rb/i )
+            {
+				my @cmd1;
+                push @cmd1,                  "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
+                push @cmd1,                  "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
+				my @rep_cmd1 = repeat_block( \@cmd1, 2 );
+				$t =   $GSHB{ $S{$_}{'start'} };
+				insert_block( \$t, \@rep_cmd1, "+", 1 );
+            }
+        
+        
+        
+        
         print "---\n";
 
         # 		print Dumper(@rep_cmd);# if $debug;
@@ -1142,19 +1163,12 @@ foreach ( sort keys %S ) {
 
             $t = $S{$_}{'stop'} + &block_duration( \@rep_cmd );
         }
-		# coherent mode for VLBI observations
-		elsif( $S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|gbts|grts|raks19)/i){
-			push @cmd, "1\t" . $dt . "\t3211,05052867		// vkl.15MHz na BVSCh-1";
-			push @cmd, "1\t" . $dt . "\t3116\t// vkl. HM";
-            push @cmd, "1\t" . $dt . "\t3115\t// vkl Cogerent";
-            push @cmd, "1\t" . $dt . "\t3116\t// vkl. HM";
-			@rep_cmd = repeat_block( \@cmd, 2 );
-			$t = $S{$_}{'stop'} + &block_duration( \@rep_cmd );
-		}
+
         else {
             ######################################
             # GSH AFTER
 
+            
             print "Calibration after ", $S{$_}{'obscode'}, " stop time ",
               print_time( $S{$_}{'stop'} ), "\n";
 
@@ -1168,6 +1182,8 @@ foreach ( sort keys %S ) {
             push @cmd, @cmd1;
 
             unless ($doshort_aft) {
+#                         die "long GSH_AFT haha start time = ",print_time($_),"\n"   if($S{$_}{'obscode'}=~m/raks18bg/i);
+
                 if ( $S{$_}{'bands'} =~ m/k/i ) {
                     push @cmd,
                       "1\t" . $dt . "\t3240,0000009E\t// otkl.kanalov FGSVCH";
@@ -1243,6 +1259,10 @@ foreach ( sort keys %S ) {
                     $t     = $S{$_}{'stop'} + $ans;
                 }
             }
+            
+            
+            print "111111 GSH AFT time at this point is ", print_time($t),"\n";
+            
 
             if ($dozu) {
                 unshift @rep_cmd, "1\t" . $dt . "\t866-34\t// vkl zapis ZU";
@@ -1253,35 +1273,59 @@ foreach ( sort keys %S ) {
                 @cmd = read_file(
                     "GSH_NEW/" . lc( $S{$_}{'bands'} ) . "_gsh_short" );
                 @rep_cmd = repeat_block( \@cmd, 2 );
-                $t =
-                  $S{$_}{'stop'} -
-                  &block_duration( \@rep_cmd ) +
-                  5;    ### ??????????????????????? why  minus???????????????
+                $t = $S{$_}{'stop'} - &block_duration( \@rep_cmd ) + 5;    ### ??????????????????????? why minus???????????????
 
                 # 		      $t=$S{$_}{'stop'} - 20;
 
                 $GSHA{ $S{$_}{'stop'} } = $t;
             }
 
-        }
-        if (   $S{$_}{'ts_mode'} =~ m/rb/i
-            && $S{$S{$_}{'next'}}{'ts_mode'} !~ m/rb/i )
-        {
-            my @cmd;
-            push @cmd, "1\t" . $dt . "\t3240,00000013\t// Otkl 5MHz na BRSCh-2";
-            push @cmd,
-                "1\t"
-              . $dt
-              . "\t3240,0000001B\t// Work FGTCh s  \"VIRK-1\" (BVSCH-1,2)";
-            push @rep_cmd, repeat_block( \@cmd, 2 );
+            print "222222 GSH AFT time at this point is ", print_time($t),"\n";
+
+	
         }
 
-        $GSHA{ $S{$_}{'stop'} } = $t + &block_duration( \@rep_cmd )
-          if $dogsh;    # GSH after stop time
+        $GSHA{ $S{$_}{'stop'} } = $t + &block_duration( \@rep_cmd )     if $dogsh;    # GSH after stop time
         $GSHA{ $S{$_}{'stop'} } = $S{$_}{'stop'} unless $dogsh;
 
+        
         insert_block( \$t, \@rep_cmd, "+", 1 ) if $dogsh;
 
+        
+        # two blocks below should be executed even if the GSH_AFT is not inserted. (MML)
+        
+         # coherent mode for VLBI observations
+		if( $S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|gbts|grts|raks19)/i){
+			my @cmd1=();
+			push @cmd1, "1\t" . $dt . "\t3211,05052867		// vkl.15MHz na BVSCh-1";
+			push @cmd1, "1\t" . $dt . "\t3116\t// vkl. HM";
+            push @cmd1, "1\t" . $dt . "\t3115\t// vkl Cogerent";
+            push @cmd1, "1\t" . $dt . "\t3116\t// vkl. HM";
+			
+			my @rep_cmd1 = repeat_block( \@cmd1, 2 );
+# 			push @rep_cmd, @rep_cmd1;	# add to GSH_AFT commands
+			
+# 			$t = $S{$_}{'stop'} + &block_duration( \@rep_cmd );
+			
+			insert_block( \$t, \@rep_cmd1, "+", 1 );
+		}
+		
+		
+		
+		
+		if (   $S{$_}{'ts_mode'} =~ m/rb/i
+            && $S{$S{$_}{'next'}}{'ts_mode'} !~ m/rb/i )
+        {
+            my @cmd1;
+            push @cmd1, "1\t" . $dt . "\t3240,00000013\t// Otkl 5MHz na BRSCh-2";
+            push @cmd1, "1\t". $dt. "\t3240,0000001B\t// Work FGTCh s  \"VIRK-1\" (BVSCH-1,2)";
+            my @rep_cmd1=();
+            push @rep_cmd1, repeat_block( \@cmd1, 2 );
+			insert_block( \$t, \@rep_cmd1, "+", 1 );
+
+        }
+
+                
         print
 "\n\n#######################################################################
 			this power  = $S{$_}{'power'}
@@ -2501,7 +2545,7 @@ if ( ( scalar @rec_periods ) > 1 ) {
 
         my @cmd = read_file("COM/com_start");
 
-        # Formatter regime in the beginning
+        # Formatter regime
 
         if ( $S{ $keys[0] }{'fmode'} =~ m/f3\/f3/i ) {
             push @cmd, "1\t10\t3240,0000001F\t// vkl get. 258 MHz";
@@ -2688,7 +2732,7 @@ else {
 }
 
 END {
-    unless ($debug) { `python2 cyclogram.py ra$nachalo-$konec.01.035` }
+    unless ($debug) { `python2 cyclogram_rb_ch.py ra$nachalo-$konec.01.035` }
 }
 
 # HEADER
