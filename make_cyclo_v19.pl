@@ -1103,7 +1103,7 @@ foreach ( sort keys %S ) {
 				push @cmd1, "1\t" . $dt . "\t3211,050466A1\t// otkl. 15MHz";
 				my @rep_cmd1 = repeat_block( \@cmd1, 2 );
 				$t =   $GSHB{ $S{$_}{'start'} };
-				insert_block( \$t, \@rep_cmd1, "+", 1 );
+				insert_block( \$t, \@rep_cmd1, "-", 1 );
 
 				
 			}
@@ -1117,7 +1117,7 @@ foreach ( sort keys %S ) {
                 push @cmd1,                  "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
 				my @rep_cmd1 = repeat_block( \@cmd1, 2 );
 				$t =   $GSHB{ $S{$_}{'start'} };
-				insert_block( \$t, \@rep_cmd1, "+", 1 );
+				insert_block( \$t, \@rep_cmd1, "-", 1 );
             }
         
         
