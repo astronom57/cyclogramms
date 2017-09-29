@@ -75,8 +75,7 @@ unless ( defined $interactive ) {
 # version 15
 # completely rewritten
 
-our %T = ()
-  ; # test hash with all blocks. Primary key is block start time. Secondary are start and stop
+our %T = ()  ; # test hash with all blocks. Primary key is block start time. Secondary are start and stop
 our %times;    # global hash with a cyclogramm. $T{time_in_seconds}=command
 our $t      = 0;    # global time
 our $dt     = 5;    # default delay between commands
@@ -1062,7 +1061,7 @@ foreach ( sort keys %S ) {
                   "1\t" . $dt . "\t3112\t// otkl. regim 4W (power = 40W)";
                 insert_block( \$t, \@cmd, "-", 1 );
             }
-
+			$GSHB{ $S{$_}{'start'} } = $S{$_}{'start'};
         }
         else {
             print "finally got here\n";
@@ -1084,7 +1083,7 @@ foreach ( sort keys %S ) {
                       "1\t" . $dt . "\t3112\t// otkl. regim 4W (power = 40W)";
                     insert_block( \$t, \@cmd, "-", 1 );
                 }
-
+				$GSHB{ $S{$_}{'start'} } = $S{$_}{'start'};
             }
 
         }
@@ -1104,7 +1103,6 @@ foreach ( sort keys %S ) {
 				my @rep_cmd1 = repeat_block( \@cmd1, 2 );
 				$t =   $GSHB{ $S{$_}{'start'} };
 				insert_block( \$t, \@rep_cmd1, "-", 1 );
-
 				
 			}
         
@@ -1117,7 +1115,22 @@ foreach ( sort keys %S ) {
                 push @cmd1,                  "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
 				my @rep_cmd1 = repeat_block( \@cmd1, 2 );
 				$t =   $GSHB{ $S{$_}{'start'} };
-				insert_block( \$t, \@rep_cmd1, "-", 1 );
+				
+				print "RB mode switch on; dogsh = $dogsh. t = ",print_time($t),"\n";
+				
+				
+				# test insertion of the RB mode switch on. 
+				my $test_time = simulate_insert_block(\$t, \@rep_cmd1, "-", 1 );
+				print "RB mode switch on; dogsh = $dogsh. t = ",print_time($t),"\n";
+				print "test_time = ",print_time($test_time),"\n";
+				
+				
+				# if it puts RB switch on commands before the prev session stop, or before prev session GSH_after end, then change direction of search. 			
+				my $rb_dir="-";
+				if($test_time <= $S{$S{$_}{'prev'}}{'stop'}  or $test_time <= $GSHA{$S{$_}{'prev'}}) {$rb_dir="+";}
+				
+				
+				insert_block( \$t, \@rep_cmd1, $rb_dir, 1 );
             }
         
         
@@ -3476,6 +3489,116 @@ sub die_smart {
     die 53;
 
 }
+
+
+
+
+
+
+# this sub simulates an insertion of a block of commands
+# INPUT: reference to global time (will not change), ref to array with commands, direction to move, how many times to repeat
+# OUTPUT: global time of a block start.
+sub simulate_insert_block() {    # of commands
+    ( my $t_ref, my $ar_ref, my $dir, my $repeat ) = @_;    # read inputs
+    
+    my $LOCAL_T = $$t_ref;		# local copy of the global time variable. Will return this.
+    
+    my $shift = $dt;
+    if ( !$repeat ) { $repeat = 1; }    # check if we need to repeat
+    if ( $dir eq "-" ) {
+        $shift = -$dt;
+    } # choose a direction to move block in case of overlapping with existing commands. A value of the shift is assigned here as well
+    my @rep_array =
+      &repeat_block( $ar_ref, $repeat );    # same array with repeated values
+    my @keys = keys %times;                 # keys of global times hash array
+
+    print join( "\n", @rep_array ), "\n" if $debug2;
+
+    my $d_t     = &block_duration($ar_ref);
+    my $d_t_rep = &block_duration( \@rep_array );
+
+    print "block duration = $d_t\n"                  if $debug2;
+    print "block duration with repeats = $d_t_rep\n" if $debug2;
+
+    my $conflict = 0;
+
+    foreach my $c ( sort keys %T ) {
+        if (
+            ( $LOCAL_T >= $c && $LOCAL_T <= $T{$c} )
+            || (   ( $LOCAL_T + $d_t_rep ) >= $c
+                && ( $LOCAL_T + $d_t_rep ) <= $T{$c} )
+            || ( $c >= $LOCAL_T && $T{$c} <= ( $LOCAL_T + $d_t_rep ) )
+          )
+        {
+            $conflict = 1;
+        }
+    }
+
+    # move until no conflict
+  OUTER: while ($conflict) {
+
+        print "conf = $conflict\n"                           if $debug2;
+        print "block start\tstarttime\tstoptime\tblockend\n" if $debug2;
+        foreach my $c ( sort keys %T ) {
+
+            print print_time_only($c), "\t", print_time_only($LOCAL_T), "\t",
+              print_time_only( $LOCAL_T + $d_t_rep ), "\t",
+              print_time_only( $T{$c} ), "\n"
+              if $debug2;
+
+            if (
+                ( $LOCAL_T >= $c && $LOCAL_T <= $T{$c} )
+                || (   ( $LOCAL_T + $d_t_rep ) >= $c
+                    && ( $LOCAL_T + $d_t_rep ) <= $T{$c} )
+                || ( $c >= $LOCAL_T && $T{$c} <= ( $LOCAL_T + $d_t_rep ) )
+              )
+            {
+                $conflict = 1;
+
+#print "insert_block: conflict with\n\t\t",print_time($c),"( block duration ",$d_t_rep," )\n" if $debug;
+#print "t-ref was ",$LOCAL_T,"\t",print_time($LOCAL_T),"\n";
+                $LOCAL_T += $shift;
+
+                #print "t-ref became ",$LOCAL_T,"\t",print_time($LOCAL_T),"\n";
+                next OUTER;
+            }
+            else {
+                $conflict = 0;
+            }
+        }
+
+    }
+
+    print "conf = $conflict\n" if $debug2;
+
+    # fill %times
+
+    my $lt = $LOCAL_T;    # local time
+    foreach my $i (@rep_array) {
+        ( my $n, my $delay, my $cmd, my $comment ) = split /\t+/, $i;
+#         $times{$lt} = $cmd . ( length($cmd) > 8 ? "\t" : "\t\t" ) . $comment;
+
+        $lt += $delay;
+    }
+
+    #$comments{qq($LOCAL_T+3)}="//\n";
+
+    $T{$LOCAL_T} = $lt;
+
+    print "block borders: start= ", print_time($LOCAL_T), "\tstop= ",
+      print_time($lt), "\n"
+      if $debug2;
+    print "block duration = ", $lt - $LOCAL_T, " sec\n" if $debug2;
+
+    $LOCAL_T = $lt;
+    
+    return $LOCAL_T;
+
+}
+
+
+
+
 
 exit 0;
 
