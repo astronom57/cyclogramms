@@ -837,7 +837,7 @@ foreach ( sort keys %S ) {
         
 			
 
-            unless ($doshort_bef) {
+            if (!$doshort_bef and !$interactive) {
 
                 if ( $S{$_}{'bands'} =~ m/k/i ) {
                     push @cmd,
@@ -1303,7 +1303,6 @@ foreach ( sort keys %S ) {
 
         
         insert_block( \$t, \@rep_cmd, "+", 1 ) if $dogsh;
-
         
         # two blocks below should be executed even if the GSH_AFT is not inserted. (MML)
         
@@ -1318,7 +1317,7 @@ foreach ( sort keys %S ) {
 			my @rep_cmd1 = repeat_block( \@cmd1, 2 );
 # 			push @rep_cmd, @rep_cmd1;	# add to GSH_AFT commands
 			
-# 			$t = $S{$_}{'stop'} + &block_duration( \@rep_cmd );
+ 			$t = $S{$_}{'stop'}; # + &block_duration( \@rep_cmd );
 			
 			insert_block( \$t, \@rep_cmd1, "+", 1 );
 		}
