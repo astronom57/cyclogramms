@@ -836,20 +836,21 @@ foreach ( sort keys %S ) {
         else {
         
 			
+            if (!$doshort_bef ) {
 
-            if (!$doshort_bef and !$interactive) {
-
-                if ( $S{$_}{'bands'} =~ m/k/i ) {
-                    push @cmd,
-                      "1\t" . $dt . "\t3240,0000009E\t// otkl.kanalov FGSVCH";
-                    push @cmd,
-                        "1\t"
-                      . ( 70 - $dt )
-                      . "\t3230,3F000000\t// otkl. get. 1.35";
-                }
-                else {
-                    push @cmd, "1\t70\t3240,0000009E\t// otkl.kanalov FGSVCH";
-                }
+				if(!$interactive){
+					if ( $S{$_}{'bands'} =~ m/k/i ) {
+						push @cmd,
+						"1\t" . $dt . "\t3240,0000009E\t// otkl.kanalov FGSVCH";
+						push @cmd,
+							"1\t"
+						. ( 70 - $dt )
+						. "\t3230,3F000000\t// otkl. get. 1.35";
+					}
+					else {
+						push @cmd, "1\t70\t3240,0000009E\t// otkl.kanalov FGSVCH";
+					}
+				}
 
                 if (
                     substr( $S{$_}{'bands'}, 0, 1 ) eq
@@ -1094,8 +1095,7 @@ foreach ( sort keys %S ) {
         
         
         # CH and RB switch ON before calibration start time. Should work even in case of no GSH_BEF inserted (MML)
-                
-        if ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i){
+        if ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i){	# for interferometric observations
 				my @cmd1=();
 				push @cmd1, "1\t" . $dt . "\t3115\t// vkl Cogerent";
 				push @cmd1, "1\t" . $dt . "\t3211,01010814\t// Razreshenie otkl.";
@@ -1104,36 +1104,37 @@ foreach ( sort keys %S ) {
 				$t =   $GSHB{ $S{$_}{'start'} };
 				insert_block( \$t, \@rep_cmd1, "-", 1 );
 				
-			}
+		}
+	
+	
+		if (   $S{$_}{'ts_mode'} =~ m/rb/i
+			&& $S{$S{$_}{'prev'}}{'ts_mode'} !~ m/rb/i )
+		{
+			my @cmd1;
+			push @cmd1,                  "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
+			push @cmd1,                  "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
+			my @rep_cmd1 = repeat_block( \@cmd1, 2 );
+			$t =   $GSHB{ $S{$_}{'start'} };
+			
+			print "RB mode switch on; dogsh = $dogsh. t = ",print_time($t),"\n";
+			
+			
+			# test insertion of the RB mode switch on. 
+			my $test_time = simulate_insert_block(\$t, \@rep_cmd1, "-", 1 );
+			print "RB mode switch on; dogsh = $dogsh. t = ",print_time($t),"\n";
+			print "test_time = ",print_time($test_time),"\n";
+			
+			
+			# if it puts RB switch on commands before the prev session stop, or before prev session GSH_after end, then change direction of search. 			
+			my $rb_dir="-";
+			if($test_time <= $S{$S{$_}{'prev'}}{'stop'}  or $test_time <= $GSHA{$S{$_}{'prev'}}) {$rb_dir="+";}
+			
+			
+			insert_block( \$t, \@rep_cmd1, $rb_dir, 1 );
+		}
         
-        
-            if (   $S{$_}{'ts_mode'} =~ m/rb/i
-                && $S{$S{$_}{'prev'}}{'ts_mode'} !~ m/rb/i )
-            {
-				my @cmd1;
-                push @cmd1,                  "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
-                push @cmd1,                  "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
-				my @rep_cmd1 = repeat_block( \@cmd1, 2 );
-				$t =   $GSHB{ $S{$_}{'start'} };
-				
-				print "RB mode switch on; dogsh = $dogsh. t = ",print_time($t),"\n";
-				
-				
-				# test insertion of the RB mode switch on. 
-				my $test_time = simulate_insert_block(\$t, \@rep_cmd1, "-", 1 );
-				print "RB mode switch on; dogsh = $dogsh. t = ",print_time($t),"\n";
-				print "test_time = ",print_time($test_time),"\n";
-				
-				
-				# if it puts RB switch on commands before the prev session stop, or before prev session GSH_after end, then change direction of search. 			
-				my $rb_dir="-";
-				if($test_time <= $S{$S{$_}{'prev'}}{'stop'}  or $test_time <= $GSHA{$S{$_}{'prev'}}) {$rb_dir="+";}
-				
-				
-				insert_block( \$t, \@rep_cmd1, $rb_dir, 1 );
-            }
-        
-        
+                   
+     
         
         
         print "---\n";
@@ -1317,7 +1318,7 @@ foreach ( sort keys %S ) {
 			my @rep_cmd1 = repeat_block( \@cmd1, 2 );
 # 			push @rep_cmd, @rep_cmd1;	# add to GSH_AFT commands
 			
- 			$t = $S{$_}{'stop'}; # + &block_duration( \@rep_cmd );
+			$t = $S{$_}{'stop'};# + &block_duration( \@rep_cmd );
 			
 			insert_block( \$t, \@rep_cmd1, "+", 1 );
 		}
@@ -2274,7 +2275,7 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
         else { $time2warmup = 5700; }
 
         # v18. warmup time = 3600 for coherent
-        if ( $S{ $keys[$i] }{'ts_mode'} =~ m/ch/i ) { $time2warmup = 3600; }
+        if ( $S{ $keys[$i] }{'ts_mode'} =~ m/ch/i and $S{$_}{'obscode'} =~ m/(?:puts|gbts|grts|raks19)/i) { $time2warmup = 3600; }		# coherent for gravitational observations only
 
         if ( $i == 0 ) {
             if ( $time_to_start > $time2warmup ) {
@@ -2339,7 +2340,7 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
             # do not switch on TRST-6 for CH mode observations
 
             if ( $S{ $keys[$i] }{'ts_mode'} =~ m/ch/i
-                and ( any { $_ =~ m/c/i } @poweron_now ) )
+                and ( any { $_ =~ m/c/i } @poweron_now )  and $S{$_}{'obscode'} =~ m/(?:puts|gbts|grts|raks19)/i )		# grav only
             {
                 for my $i ( 0 .. $#$ref ) {
                     if ( $$ref[$i] =~ m/3130.*TRST/i ) {
@@ -2405,7 +2406,8 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
 
 # v18
 # for CH sessions there is no need to switch off TRST-6 after the CH-observation, since is should be switched off 30 min in advance of the CH-obs.
-            if ( $S{ $keys[$i] }{'ts_mode'} =~ m/ch/i ) {
+# GRAV inly
+            if ( $S{ $keys[$i] }{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} =~ m/(?:puts|gbts|grts|raks19)/i) {		
                 for my $j ( 0 .. $#cmd ) {
                     if ( $cmd[$j] =~ m/3132.*TRST/i ) {
                         splice @cmd, $j, 1;
@@ -2659,7 +2661,7 @@ for ( my $k = 0 ; $k < scalar @keys4ch ; $k++ ) {
     {
         next;
     }
-    if ( $S{$n}{'ts_mode'} =~ m/ch/i ) {
+    if ( $S{$n}{'ts_mode'} =~ m/ch/i  and $S{$n}{'obscode'} =~ m/(?:puts|gbts|grts|raks19)/i) {		# for GRAVITATIONAL observations only
 
         # check before
         foreach my $j ( 0 .. $k - 1 ) {
