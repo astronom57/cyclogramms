@@ -837,20 +837,23 @@ foreach ( sort keys %S ) {
         
 			
 
-            if (!$doshort_bef and !$interactive) {
+            if (!$doshort_bef ) {
 
-                if ( $S{$_}{'bands'} =~ m/k/i ) {
-                    push @cmd,
-                      "1\t" . $dt . "\t3240,0000009E\t// otkl.kanalov FGSVCH";
-                    push @cmd,
-                        "1\t"
-                      . ( 70 - $dt )
-                      . "\t3230,3F000000\t// otkl. get. 1.35";
-                }
-                else {
-                    push @cmd, "1\t70\t3240,0000009E\t// otkl.kanalov FGSVCH";
-                }
-
+				if(!$interactive){
+					if ( $S{$_}{'bands'} =~ m/k/i ) {
+						push @cmd,
+						"1\t" . $dt . "\t3240,0000009E\t// otkl.kanalov FGSVCH";
+						push @cmd,
+							"1\t"
+						. ( 70 - $dt )
+						. "\t3230,3F000000\t// otkl. get. 1.35";
+					}
+					else {
+						push @cmd, "1\t70\t3240,0000009E\t// otkl.kanalov FGSVCH";
+					}
+				}
+                
+                
                 if (
                     substr( $S{$_}{'bands'}, 0, 1 ) eq
                     substr( $S{$_}{'bands'}, 1, 1 ) )
