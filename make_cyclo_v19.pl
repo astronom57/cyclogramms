@@ -565,6 +565,11 @@ foreach ( keys %all_rec_periods ) {
                 push @array_off,
                   $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'start'};
 
+            } elsif ($S{ ${ $all_rec_periods{$_} }[$i] }{'type'} eq 'just' and
+                     $S{ ${ $all_rec_periods{$_} }[$i] }{'bands'} =~ m/.c/i and
+                     $_ =~ m/c/i) {
+                push @array_off,
+                  $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'start'};
             }
 
             #     print ${$all_rec_periods{$_}}[$i],"\t";
@@ -2133,8 +2138,9 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
 
   # else need to check if the same receiver was not used during previous 5 hours
                 else {
-                  AFTEROBSOFF:
-                    for ( my $j = $i + 1 ; $j < scalar @keys ; $j++ ) {
+                  AFTEROBSOFF: for ( my $j = $i + 1 ; $j < scalar @keys ; $j++ ) {
+                            print 'abcdef';
+                            print Dumper($S{ $keys[$j] });
 
                         # v19
                         if (
@@ -2150,37 +2156,18 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
                         }
 
                         if ( $rec !~ m/k/i ) {
-
-# First channel: C1,L1,P1
-# If there ARE future observations with the same receiver within 5 hours after the current observation (so they should not be powered off now)
-                            if (
-                                (
-                                    lc(
-                                        substr(
-                                            $S{ $keys[$j] }{'bands'}, 0, 1
-                                        )
-                                    ) eq lc( substr( $rec, 0, 1 ) )
-                                    or lc(
-                                        substr(
+                            if ($S{ $keys[$j] }{'type'} eq 'just' and $rec =~ m/c1/i and substr(
                                             $S{ $keys[$j] }{'bands'}, 1, 1
-                                        )
-                                    ) eq lc( substr( $rec, 0, 1 ) )
-                                )
-                                and ( $S{ $keys[$j] }{'start'} -
-                                    $S{ $keys[$i] }{'stop'} ) < 5 * 3600
-                              )
+                                        ) =~ m/c/i)
                             {
-                                # do nothing
-                            }
-                            else {
                                 push @poweroff_now, $rec;
                                 last AFTEROBSOFF;
                             }
 
-# Second channel: C2,L2,P2
+# First channel: C1,L1,P1
 # If there ARE future observations with the same receiver within 5 hours after the current observation (so they should not be powered off now)
                             if (
-                                (
+                                ! (
                                     lc(
                                         substr(
                                             $S{ $keys[$j] }{'bands'}, 0, 1
@@ -2192,13 +2179,8 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
                                         )
                                     ) eq lc( substr( $rec, 0, 1 ) )
                                 )
-                                and ( $S{ $keys[$j] }{'start'} -
-                                    $S{ $keys[$i] }{'stop'} ) < 5 * 3600
                               )
                             {
-                                # do nothing
-                            }
-                            else {
                                 push @poweroff_now, $rec;
                                 last AFTEROBSOFF;
                             }
