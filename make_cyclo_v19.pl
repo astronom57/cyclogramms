@@ -1518,8 +1518,15 @@ foreach ( sort keys %S ) {
             insert_block( \$t, \@rep_cmd, "+", 1 );
 
             $t       = $S{$_}{'start'};
+            my $tt       = $S{$_}{'beginscan'};
             @rep_cmd = ( "1\t" . $dt . "\t866-34\t// vkl zapis ZU" );
-            insert_block( \$t, \@rep_cmd, "-", 1 );
+            insert_block( \$tt, \@rep_cmd, "-", 1 );
+
+            my @cmd1;
+            push @cmd1,                  "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
+            push @cmd1,                  "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
+            my @rep_cmd1 = repeat_block( \@cmd1, 2 );
+            insert_block( \$t, \@rep_cmd1, "-", 1 );
 
             print "---\n";
 
@@ -1675,6 +1682,14 @@ foreach ( sort keys %S ) {
             $t = $S{$_}{'stop'};
             my @rep_cmd = ( "1\t" . $dt . "\t808\t// otkl zapis ZU" );
             insert_block( \$t, \@rep_cmd, "+", 1 );
+
+
+            my @cmd1;
+            push @cmd1, "1\t" . $dt . "\t3240,00000013\t// Otkl 5MHz na BRSCh-2";
+            push @cmd1, "1\t". $dt. "\t3240,0000001B\t// Work FGTCh s  \"VIRK-1\" (BVSCH-1,2)";
+            my @rep_cmd1=();
+            push @rep_cmd1, repeat_block( \@cmd1, 2 );
+            insert_block( \$t, \@rep_cmd1, "+", 1 );
 
             print "---\n";
 
