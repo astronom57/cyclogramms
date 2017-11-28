@@ -1100,7 +1100,8 @@ foreach ( sort keys %S ) {
         
         
         # CH and RB switch ON before calibration start time. Should work even in case of no GSH_BEF inserted (MML)
-        if ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i){	# for interferometric observations
+        if ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i and
+            $S{$S{$_}{'prev'}}{'ts_mode'} !~ m/ch/i){	# for interferometric observations
 				my @cmd1=();
 				push @cmd1, "1\t" . $dt . "\t3115\t// vkl Cogerent";
 				push @cmd1, "1\t" . $dt . "\t3211,01010814\t// Razreshenie otkl.";
@@ -1313,7 +1314,8 @@ foreach ( sort keys %S ) {
         # two blocks below should be executed even if the GSH_AFT is not inserted. (MML)
         
          # coherent mode for VLBI observations
-		if( $S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|gbts|grts|raks19)/i){
+		if( $S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|gbts|grts|raks19)/i and
+            $S{$S{$_}{'next'}}{'ts_mode'} !~ m/ch/i){
 			my @cmd1=();
 			push @cmd1, "1\t" . $dt . "\t3211,05052867		// vkl.15MHz na BVSCh-1";
 			push @cmd1, "1\t" . $dt . "\t3116\t// vkl. HM";
