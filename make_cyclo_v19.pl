@@ -1731,6 +1731,27 @@ foreach ( sort keys %S ) {
     if ( $S{$_}{'type'} eq "obs" || $S{$_}{'type'} eq "just_virk" ) {
         push @keys, $_;
     }
+
+    if ( $S{$_}{'type'} eq "just" ) {
+        my @cmd1 = read_file(
+            uc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 0, 1 ) ) . "1/"
+              . lc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 0, 1 ) )
+              . "1_kluchi_off",
+            'all'
+        );
+        push @cmd, @cmd1;
+        my @cmd1 = read_file(
+            uc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 1, 1 ) ) . "2/"
+              . lc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 1, 1 ) )
+              . "2_kluchi_off",
+            'all'
+        );
+        push @cmd, @cmd1;
+        push @cmd, "1\t5\t3240,000000AE\t// Otkl. shiny (1-8) +27V SSVCh";
+        push @cmd, "1\t5\t3240,000000AE\t//";
+        my $t = $S{$_}{'start'};
+        insert_block( \$t, \@cmd, "-", 1 );
+    }
 }
 
 my @cmd = ();
