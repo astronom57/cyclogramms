@@ -521,6 +521,7 @@ foreach my $rec (@uniq_allbands) {
 
 print Dumper( \%all_rec_periods ), "\n";
 
+
 my %all_rec_poweron
   ; # keys of observation BEFORE which rec should be powered on. Primary key - rec. Value - array of %S keys( == start times)
 my %all_rec_poweroff
@@ -562,15 +563,21 @@ foreach ( keys %all_rec_periods ) {
                   3600, " hours\n";
 
                 push @array_on, $S{ ${ $all_rec_periods{$_} }[$i] }{'start'};
-                push @array_off,
-                  $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'start'};
+                push @array_off,                  $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'start'};
 
             } elsif ($S{ ${ $all_rec_periods{$_} }[$i] }{'type'} eq 'just' and
                      $S{ ${ $all_rec_periods{$_} }[$i] }{'bands'} =~ m/.c/i and
                      $_ =~ m/c/i) {
-                push @array_off,
-                  $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'start'};
+                     
+					push @array_off,                  $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'start'};
             }
+            # special case of LL->CL observations. 
+                     # CASE: both L-band channels are powered off afler an LL observation
+                     # then L2 should be powered ON for a subsequent CL observation
+			elsif(uc($S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'bands'}) eq 'LL' and  uc($S{ ${ $all_rec_periods{$_} }[$i] }{'bands'}) eq 'CL')
+                     {
+						push @array_on, $S{ ${ $all_rec_periods{$_} }[$i] }{'start'};
+                     }
 
             #     print ${$all_rec_periods{$_}}[$i],"\t";
         }
@@ -2034,6 +2041,29 @@ my @cmd = ();
 
 print "All powerON times:\n",  Dumper( \%all_rec_poweron ),  "\n" if $debug;
 print "All powerOFF times:\n", Dumper( \%all_rec_poweroff ), "\n" if $debug;
+print "-."x30,"\n";
+# print obscodes and start times for observations, when any receivers should be powered on
+# in a human-readable format
+if ($debug){
+	foreach(sort {$a<=>$b} keys %all_rec_poweron ){
+		
+# 		print "Human, read this!!\n";
+		my @keys = @{$all_rec_poweron{$_}};
+# 		print join("\n",@keys)."\n" and die;
+		print "receiver $_ powered on before : \n";
+
+		for my $k (sort {$a<=>$b} @keys){
+					print "\t"x4,$S{$k}{'obscode'} ,"\n";
+		}
+	}
+}
+
+
+
+
+
+
+
 
 my $kband_ON =
   0;    # flag that any of the K-band receivers is powered on (either K1 or K2)
@@ -2162,8 +2192,8 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
   # else need to check if the same receiver was not used during previous 5 hours
                 else {
                   AFTEROBSOFF: for ( my $j = $i + 1 ; $j < scalar @keys ; $j++ ) {
-                            print 'abcdef';
-                            print Dumper($S{ $keys[$j] });
+#                             print 'abcdef';
+#                             print Dumper($S{ $keys[$j] });
 
                         # v19
                         if (
@@ -2767,6 +2797,7 @@ else {
 
 END {
     unless ($debug) { `python2 cyclogram_rb_ch.py ra$nachalo-$konec.01.035` }
+    else{`python2 cyclogram_rb_ch.py ready_cyclogramm`}
 }
 
 # HEADER
