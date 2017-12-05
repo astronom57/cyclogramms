@@ -565,6 +565,11 @@ foreach ( keys %all_rec_periods ) {
                 push @array_off,
                   $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'start'};
 
+            } elsif ($S{ ${ $all_rec_periods{$_} }[$i] }{'type'} eq 'just' and
+                     $S{ ${ $all_rec_periods{$_} }[$i] }{'bands'} =~ m/.c/i and
+                     $_ =~ m/c/i) {
+                push @array_off,
+                  $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'start'};
             }
 
             #     print ${$all_rec_periods{$_}}[$i],"\t";
@@ -836,7 +841,6 @@ foreach ( sort keys %S ) {
         else {
         
 			
-
             if (!$doshort_bef ) {
 
 				if(!$interactive){
@@ -852,8 +856,7 @@ foreach ( sort keys %S ) {
 						push @cmd, "1\t70\t3240,0000009E\t// otkl.kanalov FGSVCH";
 					}
 				}
-                
-                
+
                 if (
                     substr( $S{$_}{'bands'}, 0, 1 ) eq
                     substr( $S{$_}{'bands'}, 1, 1 ) )
@@ -1097,7 +1100,8 @@ foreach ( sort keys %S ) {
         
         
         # CH and RB switch ON before calibration start time. Should work even in case of no GSH_BEF inserted (MML)
-        if ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i){	# for interferometric observations
+        if ($S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|grts|gbts|raks19)/i and
+            $S{$S{$_}{'prev'}}{'ts_mode'} !~ m/ch/i){	# for interferometric observations
 				my @cmd1=();
 				push @cmd1, "1\t" . $dt . "\t3115\t// vkl Cogerent";
 				push @cmd1, "1\t" . $dt . "\t3211,01010814\t// Razreshenie otkl.";
@@ -1306,12 +1310,12 @@ foreach ( sort keys %S ) {
 
         
         insert_block( \$t, \@rep_cmd, "+", 1 ) if $dogsh;
-
         
         # two blocks below should be executed even if the GSH_AFT is not inserted. (MML)
         
          # coherent mode for VLBI observations
-		if( $S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|gbts|grts|raks19)/i){
+		if( $S{$_}{'ts_mode'} =~ m/ch/i  and $S{$_}{'obscode'} !~ m/(?:puts|gbts|grts|raks19)/i and
+            $S{$S{$_}{'next'}}{'ts_mode'} !~ m/ch/i){
 			my @cmd1=();
 			push @cmd1, "1\t" . $dt . "\t3211,05052867		// vkl.15MHz na BVSCh-1";
 			push @cmd1, "1\t" . $dt . "\t3116\t// vkl. HM";
@@ -1521,8 +1525,15 @@ foreach ( sort keys %S ) {
             insert_block( \$t, \@rep_cmd, "+", 1 );
 
             $t       = $S{$_}{'start'};
+            my $tt       = $S{$_}{'beginscan'};
             @rep_cmd = ( "1\t" . $dt . "\t866-34\t// vkl zapis ZU" );
-            insert_block( \$t, \@rep_cmd, "-", 1 );
+            insert_block( \$tt, \@rep_cmd, "-", 1 );
+
+            my @cmd1;
+            push @cmd1,                  "1\t" . $dt . "\t3240,00000017   // Vkl 5MHz na BRSCh-2";
+            push @cmd1,                  "1\t" . $dt . "\t3240,0000001A   // Work FGTCh ot BRSCh-2";
+            my @rep_cmd1 = repeat_block( \@cmd1, 2 );
+            insert_block( \$t, \@rep_cmd1, "-", 1 );
 
             print "---\n";
 
@@ -1679,6 +1690,14 @@ foreach ( sort keys %S ) {
             my @rep_cmd = ( "1\t" . $dt . "\t808\t// otkl zapis ZU" );
             insert_block( \$t, \@rep_cmd, "+", 1 );
 
+
+            my @cmd1;
+            push @cmd1, "1\t" . $dt . "\t3240,00000013\t// Otkl 5MHz na BRSCh-2";
+            push @cmd1, "1\t". $dt. "\t3240,0000001B\t// Work FGTCh s  \"VIRK-1\" (BVSCH-1,2)";
+            my @rep_cmd1=();
+            push @rep_cmd1, repeat_block( \@cmd1, 2 );
+            insert_block( \$t, \@rep_cmd1, "+", 1 );
+
             print "---\n";
 
         }
@@ -1711,6 +1730,27 @@ my @keys = ();
 foreach ( sort keys %S ) {
     if ( $S{$_}{'type'} eq "obs" || $S{$_}{'type'} eq "just_virk" ) {
         push @keys, $_;
+    }
+
+    if ( $S{$_}{'type'} eq "just" ) {
+        my @cmd1 = read_file(
+            uc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 0, 1 ) ) . "1/"
+              . lc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 0, 1 ) )
+              . "1_kluchi_off",
+            'all'
+        );
+        push @cmd, @cmd1;
+        my @cmd1 = read_file(
+            uc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 1, 1 ) ) . "2/"
+              . lc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 1, 1 ) )
+              . "2_kluchi_off",
+            'all'
+        );
+        push @cmd, @cmd1;
+        push @cmd, "1\t5\t3240,000000AE\t// Otkl. shiny (1-8) +27V SSVCh";
+        push @cmd, "1\t5\t3240,000000AE\t//";
+        my $t = $S{$_}{'start'};
+        insert_block( \$t, \@cmd, "-", 1 );
     }
 }
 
@@ -2121,8 +2161,9 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
 
   # else need to check if the same receiver was not used during previous 5 hours
                 else {
-                  AFTEROBSOFF:
-                    for ( my $j = $i + 1 ; $j < scalar @keys ; $j++ ) {
+                  AFTEROBSOFF: for ( my $j = $i + 1 ; $j < scalar @keys ; $j++ ) {
+                            print 'abcdef';
+                            print Dumper($S{ $keys[$j] });
 
                         # v19
                         if (
@@ -2138,37 +2179,18 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
                         }
 
                         if ( $rec !~ m/k/i ) {
-
-# First channel: C1,L1,P1
-# If there ARE future observations with the same receiver within 5 hours after the current observation (so they should not be powered off now)
-                            if (
-                                (
-                                    lc(
-                                        substr(
-                                            $S{ $keys[$j] }{'bands'}, 0, 1
-                                        )
-                                    ) eq lc( substr( $rec, 0, 1 ) )
-                                    or lc(
-                                        substr(
+                            if ($S{ $keys[$j] }{'type'} eq 'just' and $rec =~ m/c1/i and substr(
                                             $S{ $keys[$j] }{'bands'}, 1, 1
-                                        )
-                                    ) eq lc( substr( $rec, 0, 1 ) )
-                                )
-                                and ( $S{ $keys[$j] }{'start'} -
-                                    $S{ $keys[$i] }{'stop'} ) < 5 * 3600
-                              )
+                                        ) =~ m/c/i)
                             {
-                                # do nothing
-                            }
-                            else {
                                 push @poweroff_now, $rec;
                                 last AFTEROBSOFF;
                             }
 
-# Second channel: C2,L2,P2
+# First channel: C1,L1,P1
 # If there ARE future observations with the same receiver within 5 hours after the current observation (so they should not be powered off now)
                             if (
-                                (
+                                ! (
                                     lc(
                                         substr(
                                             $S{ $keys[$j] }{'bands'}, 0, 1
@@ -2180,13 +2202,8 @@ for ( my $i = 0 ; $i < scalar @keys ; $i++ ) {
                                         )
                                     ) eq lc( substr( $rec, 0, 1 ) )
                                 )
-                                and ( $S{ $keys[$j] }{'start'} -
-                                    $S{ $keys[$i] }{'stop'} ) < 5 * 3600
                               )
                             {
-                                # do nothing
-                            }
-                            else {
                                 push @poweroff_now, $rec;
                                 last AFTEROBSOFF;
                             }
