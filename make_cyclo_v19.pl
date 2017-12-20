@@ -810,6 +810,9 @@ foreach ( sort keys %S ) {
         if ( ( $S{$this}{'ts_aft'} + 0 < 2 and ( $next - $thisstop ) < 600 ) ) {
             $doshort_aft = 1;
         }
+        if ( $global_stop_sec - $S{$this}{'stop'} < 600 ) {
+            $doshort_aft = 1;
+        }
 
         print "DOSHORT = ($doshort_bef, $doshort_aft)   ts_mode = ",$S{$this}{'ts_mode'}," \n";
 
