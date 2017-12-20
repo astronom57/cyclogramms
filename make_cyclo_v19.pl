@@ -918,30 +918,35 @@ foreach ( sort keys %S ) {
 			#	sub uks()
 
 #             # Currently supports ONLY KK observations.
-#             # further efforts are required to add CK, KL support
-#             if($S{$_}{'bands'} ~= m/kk/i){
+#             # further efforts are required to add CK, KL support, or different subbands for polarisations
+            if($S{$_}{'bands'} =~ m/kk/i and 
+            (
+				($S{$_}{'fmode'} =~ m/f2/i and $S{$_}{'cfreq1'} != 22228) or 
+				($S{$_}{'fmode'} =~ m/f3/i and $S{$_}{'cfreq1'} != 22236))
+			){
 # 				
 # 				# Initially a special naming scheme for PRM value was assigned. But to the moment nobody uses it. Hence, observations performed at any 1cm sub-band contain PRM=KK. 
 # 				# Only CFREQ+FMODE values could help to distinguish sub-bands.
 # 				# Current code only handles CFREQ=22196, FMODE=F2/F2, which is used for rags34a observations.
-# 				# This corresponds to 
-# 				my @cmd1;
-# 				
-# 				
-# 				
-# # 				push 
-# 				
-#             
-#             
-#             
-#             
-#             
-#             
-#             
-#             
-#             }
+# 				# This corresponds to F0-1.
+				
+				# to @cmd: otkl --> GSh visokiy --> otkl --> GSh nizkiy --> otkl
+# 				my $str=uks('k0','k0',7,8,35,1=>'off',2=>'high');
+
+ 				@cmd1=();
+				if($S{$_}{'cfreq1'} == 22196){
+					my $gsh_off1 = uks('f0-1','f0-1',7,8,5,1=>'off',2=>'off');
+					my $gsh_off2 = uks('f0-1','f0-1',7,8,35,1=>'off',2=>'off');
+					my $gsh_v_on = uks('f0-1','f0-1',7,8,45,1=>'high',2=>'off');
+					my $gsh_n_on = uks('f0-1','f0-1',7,8,45,1=>'low',2=>'off');
+					push @cmd1, ($gsh_off1,$gsh_v_on,$gsh_off2,$gsh_off1,$gsh_n_on,$gsh_off2);
+				}             
+				else{
+					die "K-band frequency is not standard. But this is not yet supported. LINE = ".__LINE__."\n";
+				}
+            }
             
-            
+            print Dumper(\@cmd1) if $debug;
             
             push @cmd, @cmd1;
 
