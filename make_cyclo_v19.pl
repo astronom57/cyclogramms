@@ -1738,15 +1738,25 @@ foreach ( sort keys %S ) {
     if ( $S{$_}{'type'} eq "obs" || $S{$_}{'type'} eq "just_virk" ) {
         push @keys, $_;
     }
-
-    if ( $S{$_}{'type'} eq "just" ) {
+	
+	
+	# should be omitted in case if $_ is the first observation in a cyclogramm, since no keys are actually swithed on
+    if ( $S{$_}{'type'} eq "just" and $_ != $firstobskey ) {
+    
+    
+		print  "LINE: ",__LINE__,"\n" if $debug;
+		print "obscode = $S{$S{$_}{'next'}}{'obscode'}\n";
+		print uc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 0, 1 ) ) . "1/"
+              . lc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 0, 1 ) )
+              . "1_kluchi_off\n";
+		
         my @cmd1 = read_file(
             uc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 0, 1 ) ) . "1/"
               . lc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 0, 1 ) )
-              . "1_kluchi_off",
-            'all'
-        );
+              . "1_kluchi_off",            'all'        );
         push @cmd, @cmd1;
+		print  "LINE: ",__LINE__,"\n" if $debug;
+
         my @cmd1 = read_file(
             uc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 1, 1 ) ) . "2/"
               . lc( substr( $S{ $S{$_}{'prev'} }{'bands'}, 1, 1 ) )
@@ -3140,7 +3150,7 @@ sub read_file() {
 
     my @arr = ();
 
-    open F, $file or die "Cannot open $file\n";
+    open F, $file or die "Cannot open $file. LINE: ". __LINE__."\n";
     while ( my $l = <F> ) {
         if ( $l =~ m/^\*/ ) { next; }
         chomp $l;
