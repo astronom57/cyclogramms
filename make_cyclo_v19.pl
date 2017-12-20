@@ -905,6 +905,41 @@ foreach ( sort keys %S ) {
                 }
             }
             my @cmd1 = read_file( "GSH_NEW/" . lc( $S{$_}{'bands'} ) . "_gsh" );
+            
+            
+            # 2017-12-20 (MML): try to add here different UKS for 1cm-receiver sub-bands. Uses this sub:
+            
+            # sub to generate CONTROL WORD (UKS) for 1.35 receivers
+			# INPUT: channel 1 ([k|f]number), channel 2 (i.e. f0, k0-2 etc), attenuator 1 in dB, att 2, time to wait after UKS (basically this is already beyond the UKS itself), gsh{1} = off|high|low (turn different GSH on/off),  gsh{2} = off|high|low  
+			# OUTPUT: UKS with comment as a single line
+			#	sub uks()
+
+#             # Currently supports ONLY KK observations.
+#             # further efforts are required to add CK, KL support
+#             if($S{$_}{'bands'} ~= m/kk/i){
+# 				
+# 				# Initially a special naming scheme for PRM value was assigned. But to the moment nobody uses it. Hence, observations performed at any 1cm sub-band contain PRM=KK. 
+# 				# Only CFREQ+FMODE values could help to distinguish sub-bands.
+# 				# Current code only handles CFREQ=22196, FMODE=F2/F2, which is used for rags34a observations.
+# 				# This corresponds to 
+# 				my @cmd1;
+# 				
+# 				
+# 				
+# # 				push 
+# 				
+#             
+#             
+#             
+#             
+#             
+#             
+#             
+#             
+#             }
+            
+            
+            
             push @cmd, @cmd1;
 
             #		my @AAAA = reorder_gsh($S{$_}{'bands'}, @cmd1);
