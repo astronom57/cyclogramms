@@ -491,11 +491,18 @@ foreach my $rec (@uniq_allbands) {
         # 	print $rec,"\t", $S{$keys[$i]}{'bands'},"\n";;
 
         if ( $S{ $keys[$i] }{'type'} eq 'just' ) {    # power on both channels
-            if (
-                lc( substr( $S{ $keys[$i] }{'bands'}, 0, 1 ) ) eq
-                lc( substr( $rec,                     0, 1 ) )
-                or lc( substr( $S{ $keys[$i] }{'bands'}, 1, 1 ) ) eq
-                lc( substr( $rec, 0, 1 ) ) )
+            if (                
+                (lc( substr( $S{ $keys[$i] }{'bands'}, 0, 1 ) ) eq 'c'
+                and $rec =~ m/c1/i)
+                or (lc( substr( $S{ $keys[$i] }{'bands'}, 1, 1 ) ) eq 'c'
+                and $rec =~ m/c2/i)
+                or $rec !~ m/c\d/i and (
+                    lc( substr( $S{ $keys[$i] }{'bands'}, 0, 1 ) ) eq
+                    lc( substr( $rec,                     0, 1 ) )
+                    or lc( substr( $S{ $keys[$i] }{'bands'}, 1, 1 ) ) eq
+                    lc( substr( $rec, 0, 1 ) )
+                 )
+                )
             {
                 push @array, $keys[$i];
             }
