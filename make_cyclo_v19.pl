@@ -1379,7 +1379,7 @@ foreach ( sort keys %S ) {
                 @cmd = read_file(
                     "GSH_NEW/" . lc( $S{$_}{'bands'} ) . "_gsh_short" );
                 @rep_cmd = repeat_block( \@cmd, 2 );
-                $t = $S{$_}{'stop'} - &block_duration( \@rep_cmd ) + 5;    ### ??????????????????????? why minus???????????????
+                $t = $S{$_}{'stop'};
 
                 # 		      $t=$S{$_}{'stop'} - 20;
 
