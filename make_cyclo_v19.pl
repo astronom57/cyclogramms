@@ -582,7 +582,7 @@ foreach ( keys %all_rec_periods ) {
                      # CASE: both L-band channels are powered off afler an LL observation
                      # then L2 should be powered ON for a subsequent CL observation
 			elsif((uc($S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'bands'}) eq 'LL'
-                   or $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'type'} eq 'just' and $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'bands'} =~ m/L.|.L/i)
+                   or $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'type'} eq 'just' and $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'bands'} =~ m/L/i)
                   and uc($S{ ${ $all_rec_periods{$_} }[$i] }{'bands'}) eq 'CL')
                      {
 						push @array_on, $S{ ${ $all_rec_periods{$_} }[$i] }{'start'};
