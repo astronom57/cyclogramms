@@ -965,7 +965,7 @@ foreach ( sort keys %S ) {
 
             @rep_cmd = repeat_block( \@cmd, 2 );
 
-            if ( $S{$_}{'ts_bef'} <= 0
+            if ( $S{$_}{'ts_bef'}+0 <= 0
                 && block_duration( \@rep_cmd ) <
                 ( abs( $S{$_}{'ts_bef'} ) - 3 ) * 60 )
             {    # if fits well
@@ -1224,7 +1224,7 @@ foreach ( sort keys %S ) {
             push @cmd, "1\t" . $dt . "\t3116\t// vkl. HM";
 
             # ADDDED 13-04-2015
-            push @cmd, "1\t" . $dt . "\t3240,0000001B\t// Rabota ot VIRK-1";
+            push @cmd, "1\t" . $dt . "\t3240,0000001C\t// Rabota ot VIRK-2";
             push @cmd, "1\t" . $dt . "\t3212,01010814\t// Razreshenie otkl.";
             push @cmd, "1\t" . $dt . "\t3212,05026314\t// otkl. 5MHz";
             push @cmd, "1\t" . $dt . "\t3220,000020B5\t//  \"Rabota\", 72 Mbod, USTM-ON, F3/F3";
@@ -1233,7 +1233,7 @@ foreach ( sort keys %S ) {
             push @cmd1, "1\t" . $dt . "\t3116\t// vkl. HM";
             push @cmd1, "1\t" . $dt . "\t3115\t// vkl Cogerent";
             push @cmd1, "1\t" . $dt . "\t3116\t// vkl. HM";
-            push @cmd1, "1\t" . $dt . "\t3240,0000001B\t// Rabota ot VIRK-1";
+            push @cmd1, "1\t" . $dt . "\t3240,0000001C\t// Rabota ot VIRK-2";
             push @cmd1, "1\t" . $dt . "\t3212,01010814\t// Razreshenie otkl.";
             push @cmd1, "1\t" . $dt . "\t3212,05026314\t// otkl. 5MHz";
             push @cmd1, "1\t" . $dt . "\t3220,000020B5\t//  \"Rabota\", 72 Mbod, USTM-ON, F3/F3";
@@ -1424,7 +1424,7 @@ foreach ( sort keys %S ) {
         {
             my @cmd1;
             push @cmd1, "1\t" . $dt . "\t3240,00000013\t// Otkl 5MHz na BRSCh-2";
-            push @cmd1, "1\t". $dt. "\t3240,0000001B\t// Work FGTCh s  \"VIRK-1\" (BVSCH-1,2)";
+            push @cmd1, "1\t". $dt. "\t3240,0000001C\t// Work FGTCh s  \"VIRK-2\" (BVSCH-1,2)";
             my @rep_cmd1=();
             push @rep_cmd1, repeat_block( \@cmd1, 2 );
 			insert_block( \$t, \@rep_cmd1, "+", 1 );
@@ -1779,7 +1779,7 @@ foreach ( sort keys %S ) {
 
             my @cmd1;
             push @cmd1, "1\t" . $dt . "\t3240,00000013\t// Otkl 5MHz na BRSCh-2";
-            push @cmd1, "1\t". $dt. "\t3240,0000001B\t// Work FGTCh s  \"VIRK-1\" (BVSCH-1,2)";
+            push @cmd1, "1\t". $dt. "\t3240,0000001C\t// Work FGTCh s  \"VIRK-2\" (BVSCH-1,2)";
             my @rep_cmd1=();
             push @rep_cmd1, repeat_block( \@cmd1, 2 );
             insert_block( \$t, \@rep_cmd1, "+", 1 );
