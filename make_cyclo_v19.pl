@@ -2698,27 +2698,6 @@ if ( ( scalar @rec_periods ) > 1 ) {
 
         my @cmd = read_file("COM/com_start");
 
-        # Formatter regime
-
-        if ( $S{ $keys[0] }{'fmode'} =~ m/f3\/f3/i ) {
-            push @cmd, "1\t10\t3240,0000001F\t// vkl get. 258 MHz";
-            push @cmd, "1\t10\t3220,000020B5\t// Work, 72 Mbod, F3/F3 USTM ON";
-            push @cmd, "1\t30\t866-130\t// PFK-5, 32kbod";
-            $regim_f = "f3/f3";
-            print "Switch to f3/f3\tCode: ", $S{ $keys[0] }{'obscode'},
-              " Start: ", &print_time($t), "\n";
-        }
-        elsif ( $S{ $keys[0] }{'fmode'} =~ m/f2\/f2/i ) {
-
-            #switch to f2/f2
-            push @cmd, "1\t10\t3240,0000001E\t// vkl get. 254 MHz";
-            push @cmd, "1\t10\t3220,00002075\t// Work, 72 Mbod, F2/F2 USTM ON";
-            push @cmd, "1\t30\t866-130\t// PFK-5, 32kbod";
-            $regim_f = "f2/f2";
-            print "Switch to f2/f2\tCode: ", $S{ $keys[0] }{'obscode'},
-              " Start: ", &print_time($t), "\n";
-        }
-
         my @rep_cmd = repeat_block( \@cmd, 2 );
         insert_block( \$t, \@rep_cmd, "-", 1 );
     }
