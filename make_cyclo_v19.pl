@@ -1006,22 +1006,22 @@ foreach ( sort keys %S ) {
                     else {
                         $ans = -( &block_duration( \@rep_cmd ) + 20 );
                         if ( $S{$_}{'ts_bef'} + 0 == 0 ) {
-                            if ( $S{$_}{'bands'} =~ m/kk/i ) {
-                                $ans += 110;
-                            }
-                            elsif ( $S{$_}{'bands'} =~ m/ll|pp|cc/i ) {
-                                $ans += 110;
-                            }
-                            elsif ( $S{$_}{'bands'} =~ m/([^k])[^\1k]/i )
-                            { # I believe this should correspond to lc,cl,lp,pl,cp,pc
-                                $ans += 110;
-                            }
-                            elsif ( $S{$_}{'bands'} =~ m/[^k]k$/i ) {
-                                $ans += 110;
-                            }
-                            elsif ( $S{$_}{'bands'} =~ m/^k[^k]/i ) {
-                                $ans += 110;
-                            }
+                            # if ( $S{$_}{'bands'} =~ m/kk/i ) {
+                            #     $ans += 110;
+                            # }
+                            # elsif ( $S{$_}{'bands'} =~ m/ll|pp|cc/i ) {
+                            #     $ans += 110;
+                            # }
+                            # elsif ( $S{$_}{'bands'} =~ m/([^k])[^\1k]/i )
+                            # { # I believe this should correspond to lc,cl,lp,pl,cp,pc
+                            #     $ans += 110;
+                            # }
+                            # elsif ( $S{$_}{'bands'} =~ m/[^k]k$/i ) {
+                            #     $ans += 110;
+                            # }
+                            # elsif ( $S{$_}{'bands'} =~ m/^k[^k]/i ) {
+                            #     $ans += 110;
+                            # }
                             print "Found -0. Shifting GSH_before\n" if $debug;
                         }
                     }
@@ -1339,25 +1339,25 @@ foreach ( sort keys %S ) {
                     }
                     else {
                         $ans = 0;
-                        if ( $S{$_}{'ts_aft'} == 0 ) {
+                        # if ( $S{$_}{'ts_aft'} == 0 ) {
 
-                            if ( $S{$_}{'bands'} =~ m/kk/i ) {
-                                $ans = -60;
-                            }
-                            elsif ( $S{$_}{'bands'} =~ m/ll|pp|cc/i ) {
-                                $ans = -60;
-                            }
-                            elsif ( $S{$_}{'bands'} =~ m/([^k])[^\1k]/i )
-                            { # I believe this should correspond to lc,cl,lp,pl,cp,pc
-                                $ans = -80;
-                            }
-                            elsif ( $S{$_}{'bands'} =~ m/[^k]k$/i ) {
-                                $ans = -80;
-                            }
-                            elsif ( $S{$_}{'bands'} =~ m/^k[^k]/i ) {
-                                $ans = -80;
-                            }
-                        }
+                        #     if ( $S{$_}{'bands'} =~ m/kk/i ) {
+                        #         $ans = -60;
+                        #     }
+                        #     elsif ( $S{$_}{'bands'} =~ m/ll|pp|cc/i ) {
+                        #         $ans = -60;
+                        #     }
+                        #     elsif ( $S{$_}{'bands'} =~ m/([^k])[^\1k]/i )
+                        #     { # I believe this should correspond to lc,cl,lp,pl,cp,pc
+                        #         $ans = -80;
+                        #     }
+                        #     elsif ( $S{$_}{'bands'} =~ m/[^k]k$/i ) {
+                        #         $ans = -80;
+                        #     }
+                        #     elsif ( $S{$_}{'bands'} =~ m/^k[^k]/i ) {
+                        #         $ans = -80;
+                        #     }
+                        # }
 
                     }
                     $dozu  = 1;
@@ -1379,7 +1379,7 @@ foreach ( sort keys %S ) {
                 @cmd = read_file(
                     "GSH_NEW/" . lc( $S{$_}{'bands'} ) . "_gsh_short" );
                 @rep_cmd = repeat_block( \@cmd, 2 );
-                $t = $S{$_}{'stop'} - &block_duration( \@rep_cmd ) + 5;    ### ??????????????????????? why minus???????????????
+                $t = $S{$_}{'stop'};
 
                 # 		      $t=$S{$_}{'stop'} - 20;
 
@@ -2697,27 +2697,6 @@ if ( ( scalar @rec_periods ) > 1 ) {
         $t = $_ - 7000;
 
         my @cmd = read_file("COM/com_start");
-
-        # Formatter regime
-
-        if ( $S{ $keys[0] }{'fmode'} =~ m/f3\/f3/i ) {
-            push @cmd, "1\t10\t3240,0000001F\t// vkl get. 258 MHz";
-            push @cmd, "1\t10\t3220,000020B5\t// Work, 72 Mbod, F3/F3 USTM ON";
-            push @cmd, "1\t30\t866-130\t// PFK-5, 32kbod";
-            $regim_f = "f3/f3";
-            print "Switch to f3/f3\tCode: ", $S{ $keys[0] }{'obscode'},
-              " Start: ", &print_time($t), "\n";
-        }
-        elsif ( $S{ $keys[0] }{'fmode'} =~ m/f2\/f2/i ) {
-
-            #switch to f2/f2
-            push @cmd, "1\t10\t3240,0000001E\t// vkl get. 254 MHz";
-            push @cmd, "1\t10\t3220,00002075\t// Work, 72 Mbod, F2/F2 USTM ON";
-            push @cmd, "1\t30\t866-130\t// PFK-5, 32kbod";
-            $regim_f = "f2/f2";
-            print "Switch to f2/f2\tCode: ", $S{ $keys[0] }{'obscode'},
-              " Start: ", &print_time($t), "\n";
-        }
 
         my @rep_cmd = repeat_block( \@cmd, 2 );
         insert_block( \$t, \@rep_cmd, "-", 1 );
