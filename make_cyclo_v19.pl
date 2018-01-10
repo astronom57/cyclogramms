@@ -766,6 +766,18 @@ foreach ( sort keys %S ) {
 
                 insert_block( \$t, \@rep_cmd, "+", 1 );
             }
+            
+            
+            # added 2018-01-10
+            # 9E  - switch off FGSVCh channels 
+			my @cmd = "1\t" . $dt . "\t3240,0000009E\t// otkl.kanalov FGSVCH";
+			my @rep_cmd = repeat_block( \@cmd, 2 );
+			insert_block( \$t, \@rep_cmd, "+", 1 );
+
+            
+            
+            
+            
 
             print
 "\n\n#######################################################################
