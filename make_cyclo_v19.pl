@@ -415,7 +415,7 @@ foreach ( sort keys %S ) {
         for my $i ( 0 .. $S{$_}{'bands_num'} ) {
             push @allbands, substr( $S{$_}{ 'bands' . $i }, 0, 1 ) . "1";
             push @allbands, substr( $S{$_}{ 'bands' . $i }, 1, 1 ) . "2";
-            if ( $S{$_}{'type'} eq 'just' )
+            if ( $S{$_}{'type'} eq 'just' or  ($S{$_}{'type'} eq 'just_virk' and $S{$_}{'type'}+0==0))
             {    # 4 channels totally available for justirovka
                 push @allbands, substr( $S{$_}{ 'bands' . $i }, 0, 1 ) . "2"
                   if substr( $S{$_}{ 'bands' . $i }, 0, 1 ) !~ m/c/i;
@@ -490,7 +490,7 @@ foreach my $rec (@uniq_allbands) {
 
         # 	print $rec,"\t", $S{$keys[$i]}{'bands'},"\n";;
 
-        if ( $S{ $keys[$i] }{'type'} eq 'just' ) {    # power on both channels
+        if ( $S{ $keys[$i] }{'type'} eq 'just' or  ( $S{ $keys[$i] }{'type'} eq 'just_virk' and  $S{ $keys[$i] }{'var'}+0 == 0) ) {    # power on both channels. Legit for var0 VIRK justirovkas as well since al least 2018-01-13
             if (                
                 (lc( substr( $S{ $keys[$i] }{'bands'}, 0, 1 ) ) eq 'c'
                 and $rec =~ m/c1/i)
