@@ -2015,6 +2015,7 @@ for my $i ( 0 .. $#keys ) {
             push @cmd, @cmd1;
 
             push @cmd, "1\t5\t3240,000000AE\t// Otkl. shiny (1-8) +27V SSVCh";
+            push @cmd, "1\t5\t3240,000000AE\t//";
 
             #			$t=$S{$st}{'stop'}+$S{$st}{'ts_aft'}*60;
 
