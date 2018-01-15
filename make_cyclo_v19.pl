@@ -583,7 +583,7 @@ foreach ( keys %all_rec_periods ) {
                      # then L2 should be powered ON for a subsequent CL observation
 			elsif((uc($S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'bands'}) eq 'LL'
                    or $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'type'} eq 'just' and $S{ ${ $all_rec_periods{$_} }[ $i - 1 ] }{'bands'} =~ m/L/i)
-                  and uc($S{ ${ $all_rec_periods{$_} }[$i] }{'bands'}) eq 'CL')
+                  and $S{ ${ $all_rec_periods{$_} }[$i] }{'bands'} =~ m/L/i)
                      {
 						push @array_on, $S{ ${ $all_rec_periods{$_} }[$i] }{'start'};
                      }
