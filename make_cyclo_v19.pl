@@ -2710,6 +2710,50 @@ if ( ( scalar @rec_periods ) > 1 ) {
 
         my @cmd = read_file("COM/com_start");
 
+        
+        if ( $S{ $_ }{'fmode'} =~ m/f3\/f3/i ) {
+
+			push @cmd, "1\t10\t3240,0000009E\t// otkl.kanalov FGSVCH";
+			push @cmd, "1\t10\t3240,00000021\t// otkl. get FGTCH";
+			push @cmd, "1\t10\t3240,0000001F\t// vkl get. 258 MHz";
+			push @cmd, "1\t10\t3220,000020B5\t// Work, 72 Mbod, F3/F3 USTM ON";
+			push @cmd, "1\t30\t866-130\t// PFK-5, 32kbod";
+			$regim_f = "f3/f3";
+
+			#		$t=$S{$st}{'start'}+$S{$st}{'ts_bef'}*60;
+			#		$t=$GSHB{$st};
+			#		insert_block(\$t,\@cmd,"-",2);
+			#		@cmd=();
+			print "Switch to f3/f3\tCode: ", $S{ $keys[0] }{'obscode'}, " Start: ",
+			&print_time($t), "\n";
+
+		}
+		elsif ( $S{ $_ }{'fmode'} =~ m/f2\/f2/i ) {
+
+			#switch to f2/f2
+			push @cmd, "1\t10\t3240,0000009E\t// otkl.kanalov FGSVCH";
+			push @cmd, "1\t10\t3240,00000021\t// otkl. get FGTCH";
+			push @cmd, "1\t10\t3240,0000001E\t// vkl get. 254 MHz";
+			push @cmd, "1\t10\t3220,00002075\t// Work, 72 Mbod, F2/F2 USTM ON";
+			push @cmd, "1\t30\t866-130\t// PFK-5, 32kbod";
+			$regim_f = "f2/f2";
+
+			#		$t=$S{$st}{'start'}+$S{$st}{'ts_bef'}*60;
+			#		$t=$GSHB{$st};
+			#		insert_block(\$t,\@cmd,"-",2);
+			#		@cmd=();
+			print "Switch to f2/f2\tCode: ", $S{ $keys[0] }{'obscode'}, " Start: ",
+			&print_time($t), "\n";
+
+		}
+        
+        
+        
+        
+        
+        
+        
+        
         my @rep_cmd = repeat_block( \@cmd, 2 );
         insert_block( \$t, \@rep_cmd, "-", 1 );
     }
