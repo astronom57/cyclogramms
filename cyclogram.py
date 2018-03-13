@@ -30,6 +30,7 @@ mpl.rcParams['pdf.fonttype'] = 3
 #cfile = '/home/osh/Downloads/ra22012018184000-24012018190735.01.035'
 # bad file
 #cfile = '/home/osh/Downloads/ra22012018184000-24012018190735.01 (1).035'
+#cfile = '/home/osh/Downloads/03.19 19_30 - 03.23 13_20.cyc'
 #sys.argv.append(cfile)
 
 
@@ -60,8 +61,9 @@ except:
     figfile_base = cfile
 
 
+reload(logging) # reload the module to avoid multiple Spyder console output
 logger = logging.getLogger(__name__)
-logger.setLevel('DEBUG')
+logger.setLevel('INFO')
 hndlr1 = logging.StreamHandler()
 hndlr2 = logging.FileHandler(logfile, mode='w')
 frmtr = logging.Formatter(fmt='%(levelname)s: %(message)s '
@@ -84,7 +86,7 @@ def parsum(lst1, lst2):
 
 with open(cfile, 'r') as cf:
     fulltext = cf.read()
-    sessions = re.split('[Ss]tart\s{0,1}=', fulltext)
+    sessions = ['// start=' + _ for _ in re.split('[Ss]tart\s{0,1}=', fulltext)]
     chapters = re.split('//\s*[Cc]hapter\s*\d{1,2}', fulltext)
     lines = fulltext.split('\n')
     logger.info('Processing file {} ({} lines)'.format(cfile, len(lines)))
@@ -424,14 +426,15 @@ logger.debug('figure created')
 ### TS times (Chapters) and some checkings
 tctrl0 = [] # times for control parameters
 tctrl1 = []
-yust_status = [0] * len(chapters[1:])
-kk_status = [0] * len(chapters[1:])
+yust_status = [0] * len(sessions[1:])
+kk_status = [0] * len(sessions[1:])
 i = 0
 
 wrn_cnt = 0
 
-for chapter in chapters[1:]:
+for chapter in sessions[1:]:
     chp = chapter[:300]
+    # print chp
     chapter_txt =  ''
     tstart = re.findall('[Ss]tart[\s]*=[\s]*' + '(' + timeptrn + ')', chp)
     tstop =  re.findall('[Ss]top[\s]*=[\s]*'  + '(' + timeptrn + ')', chp)
