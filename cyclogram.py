@@ -7,9 +7,6 @@ Created on Thu Jan 26 15:25:53 2017
 
 @author: A. Kutkin
 """
-
-import matplotlib as mpl
-mpl.use('agg')
 import os
 import sys
 import re
@@ -18,8 +15,24 @@ import logging
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import matplotlib.dates as mdates
-
+import matplotlib as mpl
 mpl.rcParams['pdf.fonttype'] = 3
+
+# test
+#cfile = '/home/osh/Downloads/ra10062017100825-11062017085940.01.035'
+#cfile = '/home/osh/tmp/ra09092017195825-10092017230505.01.035'
+#cfile = '/home/osh/Downloads/ra09092017195825-10092017230505.01.035'
+#cfile = '/home/osh/Downloads/ra11092017121325-13092017085230.01.035'
+#cfile = '/home/osh/Dropbox/urg/ra18122017225825-21122017120740.01.035'
+#cfile = '/home/osh/Downloads/ra22012018184000-24012018190740.09.035'
+#cfile = '/home/osh/Downloads/ra24012018214325-26012018100745.01.035'
+# good file
+#cfile = '/home/osh/Downloads/ra22012018184000-24012018190735.01.035'
+# bad file
+#cfile = '/home/osh/Downloads/ra22012018184000-24012018190735.01 (1).035'
+#cfile = '/home/osh/Downloads/03.19 19_30 - 03.23 13_20.cyc'
+#sys.argv.append(cfile)
+
 
 if len(sys.argv) < 2:
     print("Error: Specify file name")
@@ -27,7 +40,6 @@ if len(sys.argv) < 2:
 else:
     cfile = sys.argv[1]
 
-#cfile = '/home/osh/Downloads/ra10062017100825-11062017085940.01.035'
 
 if not os.path.isfile(cfile):
     print("Error: No such file: {}".format(cfile))
@@ -51,7 +63,7 @@ except:
 
 reload(logging) # reload the module to avoid multiple Spyder console output
 logger = logging.getLogger(__name__)
-logger.setLevel('DEBUG')
+logger.setLevel('INFO')
 hndlr1 = logging.StreamHandler()
 hndlr2 = logging.FileHandler(logfile, mode='w')
 frmtr = logging.Formatter(fmt='%(levelname)s: %(message)s '
@@ -74,7 +86,7 @@ def parsum(lst1, lst2):
 
 with open(cfile, 'r') as cf:
     fulltext = cf.read()
-    sessions = re.split('[Ss]tart\s{0,1}=', fulltext)
+    sessions = ['// start=' + _ for _ in re.split('[Ss]tart\s{0,1}=', fulltext)]
     chapters = re.split('//\s*[Cc]hapter\s*\d{1,2}', fulltext)
     lines = fulltext.split('\n')
     logger.info('Processing file {} ({} lines)'.format(cfile, len(lines)))
@@ -141,7 +153,8 @@ pars = {'TS':[0]*n, 'MOD-40W':[0]*n, 'ZU':[0]*n, 'BIK':[1]*n,
         'POW-6':[0]*n, 'ADC-6':[0]*n, 'TRM-6':[0]*n, 'KEY-6':[0]*n,
         'POW-18':[0]*n, 'ADC-18':[0]*n, 'KEY-18':[0]*n,
         'POW-92':[0]*n,'ADC-92':[0]*n,'KEY-92':[0]*n,
-        'NG-1.35':[0]*n, 'NG-6':[0]*n, 'NG-18':[0]*n, 'NG-92':[0]*n}
+        'NG-1.35':[0]*n, 'NG-6':[0]*n, 'NG-18':[0]*n, 'NG-92':[0]*n,
+        '15MHz':[0]*n, '5MHz':[0]*n, 'FGTCH_SRC':[2]*n}
 
 colors = pars.fromkeys(pars, 'k')
 
@@ -234,7 +247,12 @@ for ind, cline in enumerate(cmdlines):
     elif cmd == '3240,0000004B':
         pars['NG-6'][ind:] = [1]*sub
     elif cmd == '3240,0000004C':
-        pars['NG-6'][ind:] = [0]*sub
+        pars['NG-6'][ind+1:] = [0]*(sub-1)
+
+    elif cmd == '3240,0000004F':
+        pars['NG-6'][ind:] = [1]*sub
+    elif cmd == '3240,00000050':
+        pars['NG-6'][ind+1:] = [0]*(sub-1)
 
 # 18 cm
     elif cmd == u'3139':
@@ -283,6 +301,21 @@ for ind, cline in enumerate(cmdlines):
         par_ng92_2[ind:] = [2]*sub
     elif cmd == '3240,00000080':
         par_ng92_2[ind+1:] = [0]*(sub-1)
+# new features (15, 5, MHz and FGTCH SRC)
+    elif cmd == '3211,05052867':
+        pars['15MHz'][ind:] = [1]*sub
+    elif cmd == '3211,050466A1':
+        pars['15MHz'][ind+1:] = [0]*(sub-1)
+    elif cmd == '3240,00000017':
+        pars['5MHz'][ind:] = [1]*sub
+    elif cmd == '3240,00000013':
+        pars['5MHz'][ind+1:] = [0]*(sub-1)
+    elif cmd == '3240,0000001A': # Work FGTCh ot BRSCh-2
+        pars['FGTCH_SRC'][ind+1:] = [1]*(sub-1)
+    elif cmd == '3240,0000001B': # Work FGTCh s  "VIRK-1" (BVSCH-1,2)
+        pars['FGTCH_SRC'][ind+1:] = [2]*(sub-1)
+    elif cmd == '3240,0000001C': # Work FGTCh s  "VIRK-2" (BVSCH-1,2)
+        pars['FGTCH_SRC'][ind+1:] = [2]*(sub-1)
 
 # NG-1.35
     if len(cmd) > 4 and cmd.startswith('3230'):
@@ -354,6 +387,8 @@ pars['ADC-92'] = parsum(par_adc92_1, par_adc92_2)
 pars['KEY-92'] = parsum(par_key92_1, par_key92_2)
 pars['NG-92'] = parsum(par_ng92_1, par_ng92_2)
 
+#pars['FGTCH_SRC'] = parsum(pars['FGTCH_SRC'], pars['FGTCH_SRC'])
+
 ### Plotting
 ## hatch 	[‘/’ | ‘\’ | ‘|’ | ‘-‘ | ‘+’ | ‘x’ | ‘o’ | ‘O’ | ‘.’ | ‘*’]
 htch = [None, '//', '\\\\','xx']
@@ -361,12 +396,12 @@ htch = [None, '//', '\\\\','xx']
 names = ['TS', 'MOD-40W', 'ZU', 'BIK', 'HET-254', 'HET-258', 'VK-1.35', 'VK-6',
  'VK-18', 'VK-92', 'HET-1.35', 'TRM-1.35', 'POW-1.35', 'KEY-1.35', 'TRM-6',
  'POW-6', 'ADC-6', 'KEY-6', 'POW-18', 'ADC-18', 'KEY-18', 'POW-92', 'ADC-92',
- 'KEY-92', 'NG-1.35', 'NG-6', 'NG-18', 'NG-92']
+ 'KEY-92', 'NG-1.35', 'NG-6', 'NG-18', 'NG-92', '15MHz', '5MHz', 'FGTCH_SRC']
 
 old_names = ['TS', '40W', 'ZU', 'BIK', 'GET-254', 'GET-258', 'VK-1.35', 'VK-6',
  'VK-18', 'VK-92', 'GET-1.35', 'TRST-1.35', 'PIT-1.35', 'S-1.35', 'TRST-6',
  'PIT-6', 'ACP-6', 'S-6', 'PIT-18', 'ACP-18', 'S-18', 'PIT-92', 'ACP-92',
- 'S-92', 'GSH-1.35', 'GSH-6', 'GSH-18', 'GSH-92']
+ 'S-92', 'GSH-1.35', 'GSH-6', 'GSH-18', 'GSH-92', '15MHz', '5MHz', 'FGTCH_SRC']
 
 WINDOW_WIDTH = 14.0
 WINDOW_HEIGHT = WINDOW_WIDTH / 1.414286 # to fit A4 paper size
@@ -391,14 +426,15 @@ logger.debug('figure created')
 ### TS times (Chapters) and some checkings
 tctrl0 = [] # times for control parameters
 tctrl1 = []
-yust_status = [0] * len(chapters[1:])
-kk_status = [0] * len(chapters[1:])
+yust_status = [0] * len(sessions[1:])
+kk_status = [0] * len(sessions[1:])
 i = 0
 
 wrn_cnt = 0
 
-for chapter in chapters[1:]:
+for chapter in sessions[1:]:
     chp = chapter[:300]
+    # print chp
     chapter_txt =  ''
     tstart = re.findall('[Ss]tart[\s]*=[\s]*' + '(' + timeptrn + ')', chp)
     tstop =  re.findall('[Ss]top[\s]*=[\s]*'  + '(' + timeptrn + ')', chp)
@@ -453,13 +489,15 @@ for chapter in chapters[1:]:
                              linewidth=3, facecolor='darkorange'))
 
 
+
 ### Controls:
 # TODO: add advanced control for given receivers configuration
         for ind, t in enumerate(cmdtimes):
             if yust_status[i] == 1:
                 continue
             t = mdates.date2num(t)
-            if t0 < t < t1:
+
+            if t0 <= t <= t1:
                 if not pars['HET-254'][ind] and not pars['HET-258'][ind]:
                     logger.warning('No FGTCH at {}'.format(mdates.num2date(t)))
                     colors['HET-254'] = 'r'
@@ -529,7 +567,7 @@ for key in names:
         i += 1
         continue
     elif key in ['ZU', 'MOD-40W', 'BIK', 'HET-254', 'HET-258', 'VK-1.35',
-                 'VK-6', 'VK-18', 'VK-92']:
+                 'VK-6', 'VK-18', 'VK-92', '15MHz', '5MHz']:
         ax.fill_between(cmdtimes, -i-1, -i, where=value,
                         facecolor='teal', alpha=0.9)
         i += 1
